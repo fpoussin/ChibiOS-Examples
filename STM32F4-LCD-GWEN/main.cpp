@@ -33,7 +33,6 @@ extern "C" {
 #include "Gwen/Controls/Button.h"
 
 static WORKING_AREA(waThread2, 2048);
-__attribute__ ((__noreturn__))
 static msg_t Thread2(void *arg)  {
 
   (void)arg;
@@ -51,7 +50,7 @@ static msg_t Thread2(void *arg)  {
 //	uint16_t width = gdispGetWidth();
 //	uint16_t height = gdispGetHeight();
 
-  Gwen::Renderer::ChibiGFX* pRenderer = new Gwen::Renderer::ChibiGFX();
+  Gwen::Renderer::Base* pRenderer = new Gwen::Renderer::ChibiGFX();
   Gwen::Skin::Simple skin;
   skin.SetRender( pRenderer );
 
