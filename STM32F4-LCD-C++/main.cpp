@@ -55,7 +55,6 @@ static msg_t Thread2(void *arg)  {
 	color_t random_color;
 	uint16_t rx, ry, rcx, rcy;
 
-	std::stringstream pps_ss;
 	srand(halGetCounterValue());
   while (TRUE) {
 
@@ -92,7 +91,7 @@ static msg_t Thread2(void *arg)  {
 	  uint32_t ms = (halGetCounterValue()-start) / 168000;
 	  uint32_t pps = (float)pixels/((float)ms/1000.0f);
 
-	  pps_ss.flush();
+	  std::stringstream pps_ss;
 	  pps_ss << pps << " Pixels/s";
 
 	  gdispClear(Black);

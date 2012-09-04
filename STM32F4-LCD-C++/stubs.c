@@ -19,6 +19,11 @@ int _kill( int pid, int sig )
   return -1;
 }
 
+int _open_r(void *reent, const char *file, int flags, int mode)
+{
+	return -1;
+}
+
 void *__dso_handle = NULL;
 
 
