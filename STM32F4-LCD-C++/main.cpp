@@ -23,60 +23,12 @@
 #include "chprintf.h"
 #include "test.h"
 #include "stdlib.h"
-#include "string.h"
+
+#include <string>
+#include <sstream>
 
 #include "gdisp.h"
 #include "console.h"
-
-
-
-#define SCB_DEMCR (*(volatile unsigned *)0xE000EDFC)
-#define CPU_RESET_CYCLECOUNTER { SCB_DEMCR = SCB_DEMCR | 0x01000000; DWT_CYCCNT = 0; DWT_CTRL = DWT_CTRL | 1 ; }
-
-int uitoa(unsigned int value, char * buf, int max) {
-	int n = 0;
-	int i = 0;
-	unsigned int tmp = 0;
-
-	if (NULL == buf) {
-		return -3;
-	}
-
-	if (2 > max) {
-		return -4;
-	}
-
-	i=1;
-	tmp = value;
-	for (;;) {
-		tmp /= 10;
-		if (0 >= tmp) {
-			break;
-		}
-		i++;
-	}
-	if (i >= max) {
-		buf[0] = '?';
-		buf[1] = 0x0;
-		return 2;
-	}
-
-	n = i;
-	tmp = value;
-	buf[i--] = 0x0;
-	for (;;) {
-		buf[i--] = (tmp % 10) + '0';
-		tmp /= 10;
-		if (0 >= tmp) {
-			break;
-		}
-	}
-	if (-1 != i) {
-		buf[i--] = '-';
-	}
-
-	return n;
-}
 
 static WORKING_AREA(waThread2, 2048);
 __attribute__ ((__noreturn__))
@@ -102,8 +54,9 @@ static msg_t Thread2(void *arg)  {
 	uint32_t i;
 	color_t random_color;
 	uint16_t rx, ry, rcx, rcy;
-	char pps_str[25];
-	srand(DWT_CYCCNT);
+
+	std::stringstream pps_ss;
+	srand(halGetCounterValue());
   while (TRUE) {
 
 //		lcdConsoleInit(&CON1, 0, 0, gdispGetWidth(), gdispGetHeight(), &fontLarger, Black, White);
@@ -125,7 +78,7 @@ static msg_t Thread2(void *arg)  {
 	  gdispClear(Black);
 	  gdispDrawString(50, height/2, "Doing 5000 random rectangles", &fontUI2Double, White);
 	  chThdSleepMilliseconds(2000);
-	  CPU_RESET_CYCLECOUNTER;
+	  uint32_t start = halGetCounterValue();
 	  for (i = 0; i < 5000; i++) {
 		  random_color = (rand() % 65535);
 		  rx = (rand() % (width-10));
@@ -136,15 +89,14 @@ static msg_t Thread2(void *arg)  {
 		  gdispFillArea(rx, ry, rcx, rcy, random_color);
 		  pixels += (rcx+1)*(rcy+1);
 	  }
-	  uint32_t ms = DWT_CYCCNT / 168000;
+	  uint32_t ms = (halGetCounterValue()-start) / 168000;
 	  uint32_t pps = (float)pixels/((float)ms/1000.0f);
 
-	  memset (pps_str, 0, sizeof(pps_str));
-	  uitoa(pps, pps_str, sizeof(pps_str));
-	  strcat(pps_str, " Pixels/s");
+	  pps_ss.flush();
+	  pps_ss << pps << " Pixels/s";
 
 	  gdispClear(Black);
-	  gdispDrawString(100, height/2, pps_str, &fontUI2Double, White);
+	  gdispDrawString(100, height/2, pps_ss.str().c_str(), &fontUI2Double, White);
 	  chThdSleepMilliseconds(3000);
   }
 }

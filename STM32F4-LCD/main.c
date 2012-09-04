@@ -23,13 +23,9 @@
 #include "chprintf.h"
 #include "gdisp.h"
 #include "console.h"
-//#include "touchpad.h"
 #include "stdlib.h"
 #include "string.h"
 #include "test.h"
-
-#define SCB_DEMCR (*(volatile unsigned *)0xE000EDFC)
-#define CPU_RESET_CYCLECOUNTER { SCB_DEMCR = SCB_DEMCR | 0x01000000; DWT_CYCCNT = 0; DWT_CTRL = DWT_CTRL | 1 ; }
 
 int uitoa(unsigned int value, char * buf, int max) {
 	int n = 0;
@@ -46,10 +42,6 @@ int uitoa(unsigned int value, char * buf, int max) {
 
 	i=1;
 	tmp = value;
-	if (0 > tmp) {
-		tmp *= -1;
-		i++;
-	}
 	for (;;) {
 		tmp /= 10;
 		if (0 >= tmp) {
@@ -65,9 +57,6 @@ int uitoa(unsigned int value, char * buf, int max) {
 
 	n = i;
 	tmp = value;
-	if (0 > tmp) {
-		tmp *= -1;
-	}
 	buf[i--] = 0x0;
 	for (;;) {
 		buf[i--] = (tmp % 10) + '0';
@@ -108,7 +97,7 @@ static msg_t Thread2(void *arg)  {
 	color_t random_color;
 	uint16_t rx, ry, rcx, rcy;
 	char pps_str[25];
-	srand(DWT_CYCCNT);
+	srand(halGetCounterValue());
   while (TRUE) {
 
 //		lcdConsoleInit(&CON1, 0, 0, gdispGetWidth(), gdispGetHeight(), &fontLarger, Black, White);
@@ -130,7 +119,7 @@ static msg_t Thread2(void *arg)  {
 	  gdispClear(Black);
 	  gdispDrawString(50, height/2, "Doing 5000 random rectangles", &fontUI2Double, White);
 	  chThdSleepMilliseconds(2000);
-	  CPU_RESET_CYCLECOUNTER;
+	  uint32_t start = halGetCounterValue();
 	  for (i = 0; i < 5000; i++) {
 		  random_color = (rand() % 65535);
 		  rx = (rand() % (width-10));
@@ -141,7 +130,7 @@ static msg_t Thread2(void *arg)  {
 		  gdispFillArea(rx, ry, rcx, rcy, random_color);
 		  pixels += (rcx+1)*(rcy+1);
 	  }
-	  uint32_t ms = DWT_CYCCNT / 168000;
+	  uint32_t ms = (halGetCounterValue()-start) / 168000;
 	  uint32_t pps = (float)pixels/((float)ms/1000.0f);
 
 	  memset (pps_str, 0, sizeof(pps_str));

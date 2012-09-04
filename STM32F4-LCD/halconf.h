@@ -355,6 +355,7 @@
 	#define HAL_USE_GDISP           TRUE
 	/* Any driver specific defines required go here. The below line is an example. */
 	#define GDISP_NEED_MULTITHREAD	TRUE
+	#define GDISP_NEED_CONTROL	TRUE
 #endif
 
 #endif /* _HALCONF_H_ */

@@ -19,6 +19,8 @@ int _kill( int pid, int sig )
   return -1;
 }
 
+void *__dso_handle = NULL;
+
 
 
 
