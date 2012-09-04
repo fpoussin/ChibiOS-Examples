@@ -28,6 +28,9 @@ extern "C" {
 }
 #include <sstream>
 #include "Gwen/Renderers/ChibiGFX.h"
+#include "Gwen/Skins/Simple.h"
+#include "Gwen/Controls/Canvas.h"
+#include "Gwen/Controls/Button.h"
 
 static WORKING_AREA(waThread2, 2048);
 __attribute__ ((__noreturn__))
@@ -48,9 +51,20 @@ static msg_t Thread2(void *arg)  {
 //	uint16_t width = gdispGetWidth();
 //	uint16_t height = gdispGetHeight();
 
-  while (TRUE) {
+  Gwen::Renderer::ChibiGFX* pRenderer = new Gwen::Renderer::ChibiGFX();
+  Gwen::Skin::Simple skin;
+  skin.SetRender( pRenderer );
 
-	  chThdSleepMilliseconds(3000);
+  Gwen::Controls::Canvas* pCanvas = new Gwen::Controls::Canvas( &skin );
+  pCanvas->SetSize( 480, 272 );
+
+  Gwen::Controls::Button* pButton = new Gwen::Controls::Button( pCanvas );
+  pButton->SetBounds( 10, 10, 200, 100 );
+  pButton->SetText( "My First Button" );
+
+  while (TRUE) {
+	  pCanvas->RenderCanvas();
+	  chThdSleepMilliseconds(10);
   }
 }
 
