@@ -5,10 +5,8 @@
  *      Author: Andy
  */
 
-#include <cstdlib>
 #include <string>
 #include <algorithm>
-#include <sys/types.h>
 
 
 /*
@@ -31,52 +29,6 @@ extern "C" void __cxa_pure_virtual() {
   for(;;);
 }
 
-
-/*
- * Implement C++ new/delete operators using the heap
- */
-
-void *operator new(size_t size) {
-  return malloc(size);
-}
-
-void *operator new[](size_t size) {
-  return malloc(size);
-}
-
-void operator delete(void *p) {
-  free(p);
-}
-
-void operator delete[](void *p) {
-  free(p);
-}
-
-
-/*
- * sbrk function for getting space for malloc and friends
- */
-/* Using Chibios'
-extern int  _end;
-
-extern "C" {
-  caddr_t _sbrk ( int incr ) {
-
-    static unsigned char *heap = NULL;
-    unsigned char *prev_heap;
-
-    if (heap == NULL) {
-      heap = (unsigned char *)&_end;
-    }
-    prev_heap = heap;
-    /* check removed to show basic approach *//*
-
-    heap += incr;
-
-    return (caddr_t) prev_heap;
-  }
-}
-*/
 // Avoid using stringstream
 std::string str_itoa(int value, short base = 10) {
 
