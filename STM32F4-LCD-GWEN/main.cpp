@@ -21,18 +21,15 @@
 extern "C" {
 	#include "ch.h"
 	#include "hal.h"
-	#include "chprintf.h"
-	#include "test.h"
 	#include "stdlib.h"
-	//#include "gdisp.h" //This causes a conflict with the Color declarations
 }
-#include <sstream>
 #include "Gwen/Renderers/ChibiGFX.h"
 #include "Gwen/Skins/Simple.h"
 #include "Gwen/Controls/Canvas.h"
 #include "Gwen/Controls/Button.h"
 
 static WORKING_AREA(waThread2, 2048);
+__attribute__ ((__noreturn__))
 static msg_t Thread2(void *arg)  {
 
   (void)arg;
@@ -44,18 +41,14 @@ static msg_t Thread2(void *arg)  {
   palSetPad(GPIOC, GPIOC_PIN6);
   chThdSleepMilliseconds(10);
 
-	//gdispInit();
-	//gdispClear(Black);
-
-//	uint16_t width = gdispGetWidth();
-//	uint16_t height = gdispGetHeight();
-
-  Gwen::Renderer::Base* pRenderer = new Gwen::Renderer::ChibiGFX();
+  Gwen::Renderer::ChibiGFX* pRenderer = new Gwen::Renderer::ChibiGFX();
   Gwen::Skin::Simple skin;
   skin.SetRender( pRenderer );
 
+  uint16_t width = pRenderer->getWidth();
+  uint16_t height = pRenderer->getHeight();
   Gwen::Controls::Canvas* pCanvas = new Gwen::Controls::Canvas( &skin );
-  pCanvas->SetSize( 480, 272 );
+  pCanvas->SetSize( width, height );
 
   Gwen::Controls::Button* pButton = new Gwen::Controls::Button( pCanvas );
   pButton->SetBounds( 10, 10, 200, 100 );
@@ -63,14 +56,13 @@ static msg_t Thread2(void *arg)  {
 
   while (TRUE) {
 	  pCanvas->RenderCanvas();
-	  chThdSleepMilliseconds(10);
+	  chThdSleepMilliseconds(50);
   }
 }
 
 /*
  * Application entry point.
  */
-__attribute__ ((__noreturn__))
 int main(void) {
 
   /*

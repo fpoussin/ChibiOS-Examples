@@ -20,15 +20,15 @@
 
 #include "ch.h"
 #include "hal.h"
-#include "chprintf.h"
 #include "test.h"
 #include "stdlib.h"
 
-#include <string>
-#include <sstream>
-
 #include "gdisp.h"
 #include "console.h"
+
+#include <string>
+extern std::string str_itoa(int value, short base = 10);
+extern std::string str_uitoa(unsigned int value, short base = 10);
 
 static WORKING_AREA(waThread2, 2048);
 __attribute__ ((__noreturn__))
@@ -54,6 +54,8 @@ static msg_t Thread2(void *arg)  {
 	uint32_t i;
 	color_t random_color;
 	uint16_t rx, ry, rcx, rcy;
+	uint16_t *ptr = new uint16_t;
+	delete ptr;
 
 	srand(halGetCounterValue());
   while (TRUE) {
@@ -91,11 +93,11 @@ static msg_t Thread2(void *arg)  {
 	  uint32_t ms = (halGetCounterValue()-start) / 168000;
 	  uint32_t pps = (float)pixels/((float)ms/1000.0f);
 
-	  std::stringstream pps_ss;
-	  pps_ss << pps << " Pixels/s";
+	  std::string pps_str;
+	  pps_str = str_uitoa(pps) + " Pixels/s";
 
 	  gdispClear(Black);
-	  gdispDrawString(100, height/2, pps_ss.str().c_str(), &fontUI2Double, White);
+	  gdispDrawString(100, height/2, pps_str.c_str(), &fontUI2Double, White);
 	  chThdSleepMilliseconds(3000);
   }
 }
