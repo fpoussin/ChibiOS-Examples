@@ -7,7 +7,7 @@
 
 #include <string>
 #include <algorithm>
-
+#include "hacks.h"
 
 /*
  * The default pulls in 70K of garbage

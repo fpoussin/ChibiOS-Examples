@@ -45,14 +45,14 @@ static msg_t Thread2(void *arg)  {
   Gwen::Skin::Simple skin;
   skin.SetRender( pRenderer );
 
-  uint16_t width = pRenderer->getWidth();
-  uint16_t height = pRenderer->getHeight();
+  const uint16_t width = pRenderer->getWidth();
+  const uint16_t height = pRenderer->getHeight();
   Gwen::Controls::Canvas* pCanvas = new Gwen::Controls::Canvas( &skin );
   pCanvas->SetSize( width, height );
 
   Gwen::Controls::Button* pButton = new Gwen::Controls::Button( pCanvas );
-  pButton->SetBounds( 10, 10, 200, 100 );
-  pButton->SetText( "My First Button" );
+  pButton->SetBounds( 100, 100, 200, 200 );
+  pButton->SetText( "Hello" );
 
   while (TRUE) {
 	  pCanvas->RenderCanvas();
