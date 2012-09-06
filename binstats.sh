@@ -1,3 +1,3 @@
 #!/bin/bash
 
-arm-none-eabi-size $1 |tail -n1 | awk '{print "Flash: "($1+$2)/1024"KB  RAM: "($2+$3)/1024"KB"}'
+arm-none-eabi-size $1/build/obj/*.o | sort -n | awk '{print "Flash: "($1+$2)"\tRAM: "($2+$3)"\t\t" $6}'
