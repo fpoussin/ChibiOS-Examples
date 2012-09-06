@@ -25,6 +25,7 @@ extern "C" {
 	#include "evtimer.h"
 	#include "shell.h"
 	#include "shellconfig.h"
+	#include "opensans.ttf.h"
 }
 #include "Gwen/Renderers/ChibiGFX.h"
 #include "Gwen/Skins/Simple.h"
@@ -57,11 +58,12 @@ static msg_t Thread2(void *arg)  {
   palSetPad(GPIOC, GPIOC_PIN6);
   chThdSleepMilliseconds(10);
 
-  //chprintf(&SD2, "test");
+  chprintf((BaseSequentialStream *)&SD2, "\nLCD Thread starting...");
 
   Gwen::Renderer::ChibiGFX pRenderer = Gwen::Renderer::ChibiGFX();
   Gwen::Skin::Simple skin;
   skin.SetRender( &pRenderer );
+  skin.SetDefaultFont( L"OpenSans", (void*)&OpenSans_ttf, 11 );
 
   const uint16_t width = pRenderer.getWidth();
   const uint16_t height = pRenderer.getHeight();
@@ -75,13 +77,14 @@ static msg_t Thread2(void *arg)  {
   pButton->SetBounds( 100, 100, 200, 200 );
   pButton->SetText( "Hello" );
 
+  // TODO
   //Gwen::Input::ChibiGFX GwenInput;
   //GwenInput.Initialize( &pCanvas );
 
   while (TRUE) {
 
 	  pCanvas->RenderCanvas();
-
+	  // TODO
 	  //gdispEvent Event;
 	  //GwenInput.ProcessMessage( Event );
 	  chThdSleepMilliseconds(10);
