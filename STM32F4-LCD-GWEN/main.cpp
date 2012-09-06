@@ -21,12 +21,28 @@
 extern "C" {
 	#include "ch.h"
 	#include "hal.h"
-	#include "stdlib.h"
+	#include "chprintf.h"
+	#include "evtimer.h"
+	#include "shell.h"
+	#include "shellconfig.h"
 }
 #include "Gwen/Renderers/ChibiGFX.h"
 #include "Gwen/Skins/Simple.h"
 #include "Gwen/Controls/Canvas.h"
 #include "Gwen/Controls/Button.h"
+
+static WORKING_AREA(waThread1, 128);
+static msg_t Thread1(void *arg) {
+
+  (void)arg;
+  chRegSetThreadName("blinker");
+  while (TRUE) {
+    palSetPad(GPIOD, GPIOD_LED3);       /* Orange.  */
+    chThdSleepMilliseconds(500);
+    palClearPad(GPIOD, GPIOD_LED3);     /* Orange.  */
+    chThdSleepMilliseconds(500);
+  }
+}
 
 static WORKING_AREA(waThread2, 2048);
 __attribute__ ((__noreturn__))
@@ -41,22 +57,34 @@ static msg_t Thread2(void *arg)  {
   palSetPad(GPIOC, GPIOC_PIN6);
   chThdSleepMilliseconds(10);
 
-  Gwen::Renderer::ChibiGFX* pRenderer = new Gwen::Renderer::ChibiGFX();
-  Gwen::Skin::Simple skin;
-  skin.SetRender( pRenderer );
+  //chprintf(&SD2, "test");
 
-  const uint16_t width = pRenderer->getWidth();
-  const uint16_t height = pRenderer->getHeight();
+  Gwen::Renderer::ChibiGFX pRenderer = Gwen::Renderer::ChibiGFX();
+  Gwen::Skin::Simple skin;
+  skin.SetRender( &pRenderer );
+
+  const uint16_t width = pRenderer.getWidth();
+  const uint16_t height = pRenderer.getHeight();
   Gwen::Controls::Canvas* pCanvas = new Gwen::Controls::Canvas( &skin );
   pCanvas->SetSize( width, height );
+
+  pCanvas->SetDrawBackground( true );
+  pCanvas->SetBackgroundColor( Gwen::Color( 0xBB, 0xBB, 0xBB, 0xFF ) );
 
   Gwen::Controls::Button* pButton = new Gwen::Controls::Button( pCanvas );
   pButton->SetBounds( 100, 100, 200, 200 );
   pButton->SetText( "Hello" );
 
+  //Gwen::Input::ChibiGFX GwenInput;
+  //GwenInput.Initialize( &pCanvas );
+
   while (TRUE) {
+
 	  pCanvas->RenderCanvas();
-	  chThdSleepMilliseconds(50);
+
+	  //gdispEvent Event;
+	  //GwenInput.ProcessMessage( Event );
+	  chThdSleepMilliseconds(10);
   }
 }
 
@@ -64,7 +92,6 @@ static msg_t Thread2(void *arg)  {
  * Application entry point.
  */
 int main(void) {
-
   /*
    * System initializations.
    * - HAL initialization, this also initializes the configured device drivers
@@ -72,15 +99,34 @@ int main(void) {
    * - Kernel initialization, the main() function becomes a thread and the
    *   RTOS is active.
    */
+
+  Thread *shelltp = NULL;
   halInit();
   chSysInit();
 
   /*
+    * Activates the serial driver 2 using the driver default configuration.
+    * PA2(TX) and PA3(RX) are routed to USART2.
+    */
+  sdStart(&SD2, NULL);
+  palSetPadMode(GPIOA, 2, PAL_MODE_ALTERNATE(7));
+  palSetPadMode(GPIOA, 3, PAL_MODE_ALTERNATE(7));
+
+  shellInit();
+
+
+  /*
    * Creates the example thread.
    */
-//  chThdCreateStatic(waThread1, sizeof(waThread1), NORMALPRIO, Thread1, NULL);
+  chThdCreateStatic(waThread1, sizeof(waThread1), NORMALPRIO, Thread1, NULL);
   chThdCreateStatic(waThread2, sizeof(waThread2), NORMALPRIO, Thread2, NULL);
   while (TRUE) {
-    chThdSleepMilliseconds(500);
+    if (!shelltp)
+      shelltp = shellCreate(&shell_cfg1, SHELL_WA_SIZE, NORMALPRIO);
+    else if (chThdTerminated(shelltp)) {
+      chThdRelease(shelltp);    /* Recovers memory of the previous shell.   */
+      shelltp = NULL;           /* Triggers spawning of a new shell.        */
+    }
+    chThdSleepMilliseconds(25);
   }
 }
