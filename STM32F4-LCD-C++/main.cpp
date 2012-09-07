@@ -25,10 +25,26 @@
 
 #include "gdisp.h"
 #include "console.h"
+#include "touchpad.h"
 
 #include <string>
 extern std::string str_itoa(int value, short base = 10);
 extern std::string str_uitoa(unsigned int value, short base = 10);
+
+static const SPIConfig spicfg = {
+    NULL,
+    TP_CS_PORT,
+    TP_CS,
+    /* SPI_CR1_BR_2 |*/ SPI_CR1_BR_1 | SPI_CR1_BR_0,
+};
+
+TOUCHPADDriver TOUCHPADD1 = {
+	&SPID2,
+	&spicfg,
+	TP_IRQ_PORT,
+	TP_IRQ,
+	TRUE
+};
 
 static WORKING_AREA(waThread2, 2048);
 __attribute__ ((__noreturn__))
@@ -44,20 +60,34 @@ static msg_t Thread2(void *arg)  {
   chThdSleepMilliseconds(10);
 //  static GLCDConsole CON1;
 	gdispInit();
+	srand(halGetCounterValue());
+	tpInit(&TOUCHPADD1);
+	tpCalibrate();
 //	gdispSetOrientation(landscape);
 	gdispClear(Black);
 
 	uint16_t width = gdispGetWidth();
 	uint16_t height = gdispGetHeight();
 
-	uint32_t pixels;
-	uint32_t i;
+	uint32_t i=0, pixels;
 	color_t random_color;
 	uint16_t rx, ry, rcx, rcy;
-	uint16_t *ptr = new uint16_t;
-	delete ptr;
+	volatile uint16_t x, y;
+	gdispDrawString(50, height/2, "Draw pixels or quit using the cross", &fontUI2Double, Red);
+	gdispDrawString(0, 0, "X", &fontUI2Double, White);
+	 while (TRUE) {
+		 if (tpIRQ()) {
+			 // This is a dirty hack to get the position right...
+			x = ((float)width-((float)tpReadX()*2.0f))*TP_W_FIX;
+			y = ((float)tpReadY()/2.0f)*TP_H_FIX;
 
-	srand(halGetCounterValue());
+			if (x < 20 && y < 20) break;
+			gdispDrawPixel(x, y, rand() % 65535);
+			gdispDrawString(0, 0, "X", &fontUI2Double, White);
+		 }
+		 chThdSleepMilliseconds(5);
+	 }
+	 gdispClear(Black);
   while (TRUE) {
 
 //		lcdConsoleInit(&CON1, 0, 0, gdispGetWidth(), gdispGetHeight(), &fontLarger, Black, White);
@@ -117,6 +147,19 @@ int main(void) {
    */
   halInit();
   chSysInit();
+
+  /*
+   * SPI2 I/O pins setup.
+   */
+  palSetPadMode(GPIOB, 13, PAL_MODE_ALTERNATE(5) |
+                           PAL_STM32_OSPEED_HIGHEST);       /* New SCK.     */
+  palSetPadMode(GPIOB, 14, PAL_MODE_ALTERNATE(5) |
+                           PAL_STM32_OSPEED_HIGHEST);       /* New MISO.    */
+  palSetPadMode(GPIOB, 15, PAL_MODE_ALTERNATE(5) |
+                           PAL_STM32_OSPEED_HIGHEST);       /* New MOSI.    */
+  palSetPadMode(GPIOB, 12, PAL_MODE_OUTPUT_PUSHPULL |
+                           PAL_STM32_OSPEED_HIGHEST);       /* New CS.      */
+  palSetPad(GPIOB, 12);
 
   /*
    * Creates the example thread.

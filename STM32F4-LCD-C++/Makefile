@@ -73,7 +73,7 @@ include $(CHIBIOS)/os/kernel/kernel.mk
 include $(CHIBIOS)/test/test.mk
 include $(CHIBIOS)/ext/lcd/lcd.mk
 include $(CHIBIOS)/ext/lcd/drivers/gdisp/SSD1963/gdisp_lld.mk
-#include $(CHIBIOS)/ext/lcd/drivers/touchpad/ADS7843/touchpad_lld.mk
+include $(CHIBIOS)/ext/lcd/drivers/touchpad/ADS7843/touchpad_lld.mk
 
 # Define linker script file here
 LDSCRIPT= $(PORTLD)/STM32F407xG.ld
