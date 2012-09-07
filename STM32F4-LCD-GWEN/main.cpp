@@ -25,8 +25,8 @@ extern "C" {
 	#include "evtimer.h"
 	#include "shell.h"
 	#include "shellconfig.h"
-	#include "opensans.ttf.h"
 }
+#include "Gwen/Input/ChibiGFX.h"
 #include "Gwen/Renderers/ChibiGFX.h"
 #include "Gwen/Skins/Simple.h"
 #include "Gwen/Controls/Canvas.h"
@@ -63,7 +63,7 @@ static msg_t Thread2(void *arg)  {
   Gwen::Renderer::ChibiGFX pRenderer = Gwen::Renderer::ChibiGFX();
   Gwen::Skin::Simple skin;
   skin.SetRender( &pRenderer );
-  skin.SetDefaultFont( L"OpenSans", (void*)&OpenSans_ttf, 11 );
+  skin.SetDefaultFont( L"fontUI2", 11 );
 
   const uint16_t width = pRenderer.getWidth();
   const uint16_t height = pRenderer.getHeight();
@@ -77,16 +77,21 @@ static msg_t Thread2(void *arg)  {
   pButton->SetBounds( 100, 100, 200, 200 );
   pButton->SetText( "Hello" );
 
-  // TODO
-  //Gwen::Input::ChibiGFX GwenInput;
-  //GwenInput.Initialize( &pCanvas );
+  Gwen::Input::ChibiGFX GwenInput;
+  GwenInput.Initialize( pCanvas );
 
   while (TRUE) {
 
 	  pCanvas->RenderCanvas();
-	  // TODO
-	  //gdispEvent Event;
-	  //GwenInput.ProcessMessage( Event );
+	  if (GwenInput.Touched()) {
+		  GwenInput.ProcessTouch();
+	  }
+	  if (GwenInput.KeyPressed()) {
+
+		  /* This is an example
+		  GwenInput.ProcessKey(Gwen::Input::ChibiGFX::KB_RETURN);
+		  */
+	  }
 	  chThdSleepMilliseconds(10);
   }
 }

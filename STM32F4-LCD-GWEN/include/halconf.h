@@ -303,7 +303,7 @@
  *          default configuration.
  */
 #if !defined(SERIAL_DEFAULT_BITRATE) || defined(__DOXYGEN__)
-#define SERIAL_DEFAULT_BITRATE      38400
+#define SERIAL_DEFAULT_BITRATE      115200
 #endif
 
 /**
@@ -314,7 +314,7 @@
  *          buffers.
  */
 #if !defined(SERIAL_BUFFERS_SIZE) || defined(__DOXYGEN__)
-#define SERIAL_BUFFERS_SIZE         16
+#define SERIAL_BUFFERS_SIZE         64
 #endif
 
 /*===========================================================================*/
@@ -341,11 +341,34 @@
 /* GDISP driver related settings.                                              */
 /*===========================================================================*/
 
+#define SCREEN_WIDTH 480
+#define SCREEN_HEIGHT 272
+
+#define LCD_USE_FSMC
+//#define LCD_USE_GPIO
+
+#if defined(LCD_USE_GPIO)
+
+    #define LCD_CMD_PORT GPIOC
+    #define LCD_DATA_PORT GPIOD
+
+    #define LCD_CS 0
+    #define LCD_RS 1
+    #define LCD_WR 2
+    #define LCD_RD 3
+#endif
+
 /**
   * @brief   Enables the Touchpad subsystem.
   */
 #if !defined(HAL_USE_TOUCHPAD) || defined(__DOXYGEN__)
-	#define HAL_USE_TOUCHPAD           FALSE
+	#define HAL_USE_TOUCHPAD   TRUE
+	#define TOUCHPAD_HAS_IRQ   TRUE
+	#define TP_SPI 			SPID2
+	#define TP_CS_PORT 		GPIOC
+	#define TP_CS 				4
+	#define TP_IRQ_PORT 		GPIOC
+	#define TP_IRQ 			5
 #endif
 
 /**

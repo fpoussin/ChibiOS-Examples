@@ -90,7 +90,7 @@ static msg_t Thread2(void *arg)  {
 		  gdispFillArea(rx, ry, rcx, rcy, random_color);
 		  pixels += (rcx+1)*(rcy+1);
 	  }
-	  uint32_t ms = (halGetCounterValue()-start) / 168000;
+	  uint32_t ms = (halGetCounterValue()-start) / (halGetCounterFrequency()/1000);
 	  uint32_t pps = (float)pixels/((float)ms/1000.0f);
 
 	  std::string pps_str;

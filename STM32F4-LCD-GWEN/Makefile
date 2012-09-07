@@ -61,7 +61,7 @@ endif
 #
 
 # Define project name here
-PROJECT = lcd_test
+PROJECT = gwen
 
 # Imported source files and paths
 CHIBIOS = ../../chibios
@@ -73,7 +73,7 @@ include $(CHIBIOS)/os/kernel/kernel.mk
 include $(CHIBIOS)/test/test.mk
 include $(CHIBIOS)/ext/lcd/lcd.mk
 include $(CHIBIOS)/ext/lcd/drivers/gdisp/SSD1963/gdisp_lld.mk
-#include $(CHIBIOS)/ext/lcd/drivers/touchpad/ADS7843/touchpad_lld.mk
+include $(CHIBIOS)/ext/lcd/drivers/touchpad/ADS7843/touchpad_lld.mk
 include $(CHIBIOS)/ext/gwen/gwen.mk
 
 # Define linker script file here

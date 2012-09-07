@@ -61,7 +61,7 @@ endif
 #
 
 # Define project name here
-PROJECT = lcd_test
+PROJECT = lcd_cpp
 
 # Imported source files and paths
 CHIBIOS = ../../chibios
