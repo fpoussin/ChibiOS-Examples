@@ -72,22 +72,21 @@ static msg_t Thread2(void *arg)  {
   const uint16_t width = pRenderer.getWidth();
   const uint16_t height = pRenderer.getHeight();
   Controls::Canvas pCanvas = Controls::Canvas( &skin );
-  pCanvas.SetSize( width, height );
-  pCanvas.SetPos( 0, 0 );
+  pCanvas.SetSize( width-1, height-1 );
 
   pCanvas.SetDrawBackground( true );
   pCanvas.SetBackgroundColor( Color( 0xBB, 0xBB, 0xBB, 0xFF ) );
 
   Controls::Button* pButton1 = new Controls::Button( &pCanvas );
-  pButton1->SetPos( 0, 0 );
-  pButton1->SetBounds( 0, 0, 50, 50 );
+  pButton1->SetPos( 10, 10 );
+  pButton1->SetBounds( 10, 10, 50, 50 );
   pButton1->SetText( "Hello1" );
   //pButton1->onPress.Add( pCanvas, &onPress );
 
-  Controls::Button* pButton2 = new Controls::Button( &pCanvas );
-  pButton2->SetPos( 60, 0 );
-  pButton2->SetBounds( 0, 0, 50, 50 );
-  pButton2->SetText( "Hello2" );
+  //Controls::Button* pButton2 = new Controls::Button( &pCanvas );
+  //pButton2->SetPos( 60, 0 );
+  //pButton2->SetBounds( 0, 0, 50, 50 );
+  //pButton2->SetText( "Hello2" );
   //pButton2->onPress.Add( pCanvas, &onPress );
 
 
@@ -98,20 +97,24 @@ static msg_t Thread2(void *arg)  {
   Input::ChibiGFX GwenInput;
   GwenInput.Initialize( &pCanvas );
 
+  bool_t touch = 0, prevtouch = 0;
   while (TRUE) {
 
-	  pCanvas.RenderCanvas();
-
+	  if (pCanvas.NeedsRedraw()) {
+		  pCanvas.RenderCanvas();
+	  }
+	  prevtouch = touch;
 	  if (GwenInput.Touched()) {
-		  GwenInput.ProcessTouch();
+		  touch = 1;
 	  }
-	  if (GwenInput.KeyPressed()) {
+	  else
+		  touch = 0;
+	  if (prevtouch != touch) // If touch state changed
+		  GwenInput.ProcessTouch(touch);
 
-		  /* This is an example
-		  GwenInput.ProcessKey(Input::ChibiGFX::KB_RETURN);
-		  */
-	  }
-	  //chThdSleepMilliseconds(10);
+	  GwenInput.ProcessKeys();
+
+	  chThdSleepMilliseconds(10);
   }
 }
 
