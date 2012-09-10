@@ -33,6 +33,8 @@ void runGui(void) {
 	Input::ChibiGFX GwenInput;
 	GwenInput.Initialize( &pCanvas );
 
+	GwenInput.AddKey(GPIOA, GPIOA_BUTTON, Input::ChibiGFX::KB_TAB);
+
 	bool_t touch = 0, prevtouch = 0;
 	while (TRUE) {
 
