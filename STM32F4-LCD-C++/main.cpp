@@ -28,8 +28,7 @@
 #include "touchpad.h"
 
 #include <string>
-extern std::string str_itoa(int value, short base = 10);
-extern std::string str_uitoa(unsigned int value, short base = 10);
+#include <stdio.h>
 
 static const SPIConfig spicfg = {
     NULL,
@@ -123,8 +122,9 @@ static msg_t Thread2(void *arg)  {
 	  uint32_t ms = (halGetCounterValue()-start) / (halGetCounterFrequency()/1000);
 	  uint32_t pps = (float)pixels/((float)ms/1000.0f);
 
-	  std::string pps_str;
-	  pps_str = str_uitoa(pps) + " Pixels/s";
+	  char buf[20];
+	  snprintf(buf, sizeof(buf), "%u Pixels/s", pps);
+	  std::string pps_str = std::string(buf);
 
 	  gdispClear(Black);
 	  gdispDrawString(100, height/2, pps_str.c_str(), &fontUI2Double, White);

@@ -99,6 +99,7 @@ CSRC = $(PORTSRC) \
 # setting.
 CPPSRC = $(GWENSRC) \
 			src/hacks.cpp \
+			src/gui.cpp \
 			main.cpp
 
 # C sources to be compiled in ARM mode regardless of the global setting.
