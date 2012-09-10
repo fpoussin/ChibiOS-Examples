@@ -4,14 +4,11 @@ extern "C" {
 	#include "chprintf.h"
 	#include "evtimer.h"
 	#include "shell.h"
+	#include "shellconfig.h"
 }
 
 #include "Gwen/Gwen.h"
 #include "Gwen/Events.h"
-
-#include "Gwen/Input/ChibiGFX.h"
-#include "Gwen/Renderers/ChibiGFX.h"
-#include "Gwen/Skins/Light.h"
 
 #include "Gwen/Controls/Base.h"
 #include "Gwen/Controls/Canvas.h"
@@ -34,4 +31,11 @@ public:
 	}
 };
 
-void runGui(void);
+class testControl : public Controls::Base {
+
+public:
+	testControl(const Gwen::Controls::Base& base);
+
+};
+
+

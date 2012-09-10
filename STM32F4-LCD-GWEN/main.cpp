@@ -21,11 +21,11 @@
 extern "C" {
 	#include "ch.h"
 	#include "hal.h"
-	#include "chprintf.h"
-	#include "evtimer.h"
-	#include "shell.h"
-	#include "shellconfig.h"
 }
+
+#include "Gwen/Input/ChibiGFX.h"
+#include "Gwen/Renderers/ChibiGFX.h"
+#include "Gwen/Skins/Light.h"
 #include "gui.h"
 
 static WORKING_AREA(waThread1, 128);
@@ -56,7 +56,44 @@ static msg_t Thread2(void *arg)  {
 
   chprintf((BaseSequentialStream *)&SD2, "\nLCD Thread starting...");
 
-  runGui();
+	Renderer::ChibiGFX pRenderer = Renderer::ChibiGFX();
+	Skin::Light skin;
+	skin.SetRender( &pRenderer );
+
+	const uint16_t width = pRenderer.getWidth();
+	const uint16_t height = pRenderer.getHeight();
+	Controls::Canvas pCanvas = Controls::Canvas( &skin );
+	pCanvas.SetSize( width-1, height-1 );
+
+	pCanvas.SetDrawBackground( true );
+	pCanvas.SetBackgroundColor( Color( 0xBB, 0xBB, 0xBB, 0xFF ) );
+
+	testControl testcontrol(pCanvas);
+
+	Input::ChibiGFX GwenInput;
+	GwenInput.Initialize( &pCanvas );
+
+	//GwenInput.AddKey(GPIOA, GPIOA_BUTTON, Input::ChibiGFX::KB_TAB);
+
+	bool_t touch = 0, prevtouch = 0;
+	while (TRUE) {
+
+	  if (pCanvas.NeedsRedraw()) {
+		  pCanvas.RenderCanvas();
+	  }
+	  prevtouch = touch;
+	  if (GwenInput.Touched()) {
+		  touch = 1;
+	  }
+	  else
+		  touch = 0;
+	  if (prevtouch != touch) // If touch state changed
+		  GwenInput.ProcessTouch(touch);
+
+	  GwenInput.ProcessKeys();
+
+	  chThdSleepMilliseconds(10);
+	}
 }
 
 /*
