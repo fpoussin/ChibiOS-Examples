@@ -1,13 +1,6 @@
-#include "Gwen/Gwen.h"
-#include "Gwen/Input/ChibiGFX.h"
-#include "Gwen/Renderers/ChibiGFX.h"
-#include "Gwen/Skins/Light.h"
-#include "Gwen/Controls/Canvas.h"
-#include "Gwen/Controls/Button.h"
-#include "Gwen/Controls/ProgressBar.h"
 #include "gui.h"
 
-using namespace Gwen;
+testEventHandler handler;
 
 void runGui(void) {
 
@@ -24,19 +17,17 @@ void runGui(void) {
 	pCanvas.SetBackgroundColor( Color( 0xBB, 0xBB, 0xBB, 0xFF ) );
 
 	Controls::Button* pButton1 = new Controls::Button( &pCanvas );
-	pButton1->SetPos( 10, 10 );
-	pButton1->SetBounds( 10, 10, 50, 50 );
+	pButton1->SetBounds( 10, 10, 100, 50 );
 	pButton1->SetText( "Button1" );
-	//pButton1->onPress.Add( pCanvas, &onPress );
+	pButton1->onPress.Add( &handler, &testEventHandler::Button1_pressed );
 
-	//Controls::Button* pButton2 = new Controls::Button( &pCanvas );
-	//pButton2->SetPos( 60, 0 );
-	//pButton2->SetBounds( 0, 0, 50, 50 );
-	//pButton2->SetText( "Hello2" );
-	//pButton2->onPress.Add( &pCanvas, &onPress );
+	Controls::Button* pButton2 = new Controls::Button( &pCanvas );
+	pButton2->SetBounds( 120, 10, 100, 50 );
+	pButton2->SetText( "Button2" );
+	pButton1->onPress.Add( &handler, &testEventHandler::Button2_pressed );
 
-	Gwen::Controls::ProgressBar* pb = new Gwen::Controls::ProgressBar( &pCanvas );
-	pb->SetBounds(110, 20, 200, 20);
+	Controls::ProgressBar* pb = new Controls::ProgressBar( &pCanvas );
+	pb->SetBounds(10, 70, 210, 30);
 	pb->SetValue( 0.27f );
 
 	Input::ChibiGFX GwenInput;
