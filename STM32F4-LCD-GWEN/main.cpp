@@ -21,6 +21,9 @@
 extern "C" {
 	#include "ch.h"
 	#include "hal.h"
+	#include "chprintf.h"
+	#include "shell.h"
+	#include "shellconfig.h"
 }
 
 #include "Gwen/Input/ChibiGFX.h"
@@ -29,6 +32,7 @@ extern "C" {
 #include "gui.h"
 
 static WORKING_AREA(waThread1, 128);
+__attribute__ ((__noreturn__))
 static msg_t Thread1(void *arg) {
 
   (void)arg;
@@ -54,7 +58,7 @@ static msg_t Thread2(void *arg)  {
   palSetPad(GPIOC, GPIOC_PIN6);
   chThdSleepMilliseconds(10);
 
-  chprintf((BaseSequentialStream *)&SD2, "\nLCD Thread starting...");
+  chprintf((BaseSequentialStream *)&SD2, "LCD Thread starting...\r\n");
 
 	Renderer::ChibiGFX pRenderer = Renderer::ChibiGFX();
 	Skin::Light skin;
@@ -69,7 +73,6 @@ static msg_t Thread2(void *arg)  {
 	pCanvas.SetBackgroundColor( Color( 0xBB, 0xBB, 0xBB, 0xFF ) );
 
 	testControl tc(&pCanvas);
-	tc.SetPos(0, 0);
 	tc.SetBounds( 0, 0, width-1, height-1 );
 
 	Input::ChibiGFX GwenInput;
