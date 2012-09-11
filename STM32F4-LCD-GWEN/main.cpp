@@ -68,25 +68,24 @@ static msg_t Thread2(void *arg)  {
 	pCanvas.SetDrawBackground( true );
 	pCanvas.SetBackgroundColor( Color( 0xBB, 0xBB, 0xBB, 0xFF ) );
 
-	testControl testcontrol(pCanvas);
+	testControl tc(&pCanvas);
+	tc.SetPos(0, 0);
+	tc.SetBounds( 0, 0, width-1, height-1 );
 
 	Input::ChibiGFX GwenInput;
 	GwenInput.Initialize( &pCanvas );
 
-	//GwenInput.AddKey(GPIOA, GPIOA_BUTTON, Input::ChibiGFX::KB_TAB);
+	GwenInput.AddKey(GPIOA, GPIOA_BUTTON, Input::ChibiGFX::KB_TAB);
 
-	bool_t touch = 0, prevtouch = 0;
+	bool touch = false, prevtouch = false;
 	while (TRUE) {
 
 	  if (pCanvas.NeedsRedraw()) {
 		  pCanvas.RenderCanvas();
 	  }
 	  prevtouch = touch;
-	  if (GwenInput.Touched()) {
-		  touch = 1;
-	  }
-	  else
-		  touch = 0;
+	  touch = GwenInput.Touched();
+
 	  if (prevtouch != touch) // If touch state changed
 		  GwenInput.ProcessTouch(touch);
 

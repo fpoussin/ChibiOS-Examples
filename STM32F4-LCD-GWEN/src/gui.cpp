@@ -1,19 +1,20 @@
 #include "gui.h"
 
-testControl::testControl(const Gwen::Controls::Base& base) : Base(base) {
+GWEN_CONTROL_CONSTRUCTOR(testControl)
+{
 
-	Controls::Button* pButton1 = new Controls::Button( this );
-	pButton1->SetBounds( 10, 10, 100, 50 );
-	pButton1->SetText( "Button1" );
-	pButton1->onPress.Add( this, &testEventHandler::Button1_pressed );
+	m_but1 = new Controls::Button( this );
+	m_but1->SetBounds( 10, 10, 100, 50 );
+	m_but1->SetText( "Button1" );
+	m_but1->onPress.Add( this, &testControl::Button1_pressed );
 
-	//Controls::Button* pButton2 = new Controls::Button( &pCanvas );
-	//pButton2->SetBounds( 120, 10, 100, 50 );
-	//pButton2->SetText( "Button2" );
-	//pButton2->onPress.Add( &pCanvas, &testEventHandler::Button2_pressed );
+	m_but2 = new Controls::Button( this );
+	m_but2->SetBounds( 120, 10, 100, 50 );
+	m_but2->SetText( "Button2" );
+	m_but2->onPress.Add( this, &testControl::Button2_pressed );
 
-	//Controls::ProgressBar* pb = new Controls::ProgressBar( &pCanvas );
-	//pb->SetBounds(10, 70, 210, 30);
-	//pb->SetValue( 0.27f );
+	m_pgb1 = new Controls::ProgressBar( this );
+	m_pgb1->SetBounds(10, 70, 210, 30);
+	m_pgb1->SetValue( 0.27f );
 
 }
