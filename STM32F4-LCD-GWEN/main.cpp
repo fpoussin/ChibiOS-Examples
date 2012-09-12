@@ -89,7 +89,12 @@ static msg_t Thread2(void *arg)  {
 	  prevtouch = touch;
 	  touch = GwenInput.Touched();
 
-	  if (prevtouch != touch) // If touch state changed
+	  if (touch) {
+		  GwenInput.ProcessTouch(touch);
+		  chThdSleepMilliseconds(50);
+		  continue;
+	  }
+	  else if (prevtouch != touch) // If touch state changed
 		  GwenInput.ProcessTouch(touch);
 
 	  GwenInput.ProcessKeys();
