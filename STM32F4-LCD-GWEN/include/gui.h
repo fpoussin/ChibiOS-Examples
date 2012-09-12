@@ -35,6 +35,7 @@ private:
 	Controls::Button* m_but1;
 	Controls::Button* m_but2;
 	Controls::ProgressBar* m_pgb1;
+	Controls::HorizontalSlider* pSlider1;
 };
 
 
