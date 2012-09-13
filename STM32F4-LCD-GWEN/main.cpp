@@ -83,7 +83,7 @@ static msg_t Thread2(void *arg)  {
 	GwenInput.Initialize( &pCanvas );
 
 	// We map the discovery board's user button to the tab key
-	GwenInput.AddKey(GPIOA, GPIOA_BUTTON, Input::ChibiGFX::KB_TAB);
+	GwenInput.AddKey(GPIOA, GPIOA_BUTTON, Input::ChibiGFX::KB_DOWN);
 
 	bool touch = false, prevtouch = false;
 	while (TRUE) {
@@ -103,7 +103,9 @@ static msg_t Thread2(void *arg)  {
 	  else if (prevtouch != touch) // If touch state changed
 		  GwenInput.ProcessTouch(touch);
 
-	  GwenInput.ProcessKeys();
+	  if (GwenInput.ProcessKeys())
+		  chThdSleepMilliseconds(100); //Key repeat delay
+
 
 	  chThdSleepMilliseconds(10);
 	}

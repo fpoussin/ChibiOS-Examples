@@ -40,11 +40,19 @@ public:
 		chprintf((BaseSequentialStream *)&SD2, tmp.c_str());
 	}
 
+	void OnComboSelect( Gwen::Controls::Base* pControl )
+	{
+		std::string tmp("Combo Changed: ");
+		tmp += combo1->GetSelectedItem()->GetText().Get()+"\r\n";
+		chprintf((BaseSequentialStream *)&SD2, tmp.c_str());
+	}
+
 private:
 	Controls::Button* m_but1;
 	Controls::Button* m_but2;
 	Controls::ProgressBar* m_pgb1;
 	Controls::HorizontalSlider* m_slider1;
+	Controls::ComboBox* combo1;
 };
 
 
