@@ -1,6 +1,6 @@
 #include "gui.h"
 
-GWEN_CONTROL_CONSTRUCTOR(testControl)
+GWEN_CONTROL_CONSTRUCTOR(testControl) // Macro
 {
 
 	m_but1 = new Controls::Button( this );

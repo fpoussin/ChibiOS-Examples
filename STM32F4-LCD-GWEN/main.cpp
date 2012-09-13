@@ -60,39 +60,45 @@ static msg_t Thread2(void *arg)  {
 
   chprintf((BaseSequentialStream *)&SD2, "LCD Thread starting...\r\n");
 
+    // Set the renderer to use ChibiOS/GFX and the light skin
 	Renderer::ChibiGFX pRenderer = Renderer::ChibiGFX();
 	Skin::Light skin;
 	skin.SetRender( &pRenderer );
 
 	const uint16_t width = pRenderer.getWidth();
 	const uint16_t height = pRenderer.getHeight();
+
+	// This is the canvas that will contain our controls
 	Controls::Canvas pCanvas = Controls::Canvas( &skin );
 	pCanvas.SetSize( width-1, height-1 );
-
 	pCanvas.SetDrawBackground( true );
 	pCanvas.SetBackgroundColor( Color( 0xBB, 0xBB, 0xBB, 0xFF ) );
 
+	// This is where all our test controls are. We put it in the canvas.
 	testControl tc(&pCanvas);
 	tc.SetBounds( 0, 0, width-1, height-1 );
 
+	// This is what handles the inputs such as touch screen and keys.
 	Input::ChibiGFX GwenInput;
 	GwenInput.Initialize( &pCanvas );
 
+	// We map the discovery board's user button to the tab key
 	GwenInput.AddKey(GPIOA, GPIOA_BUTTON, Input::ChibiGFX::KB_TAB);
 
 	bool touch = false, prevtouch = false;
 	while (TRUE) {
 
+	// Only redraw if needed
 	  if (pCanvas.NeedsRedraw()) {
 		  pCanvas.RenderCanvas();
 	  }
 	  prevtouch = touch;
 	  touch = GwenInput.Touched();
 
-	  if (touch) {
+	  if (touch) { // If touch pressed, just process it and continue loop
 		  GwenInput.ProcessTouch(touch);
-		  chThdSleepMilliseconds(50);
-		  continue;
+		  chThdSleepMilliseconds(10);
+		  continue; // skip the rest of the loop
 	  }
 	  else if (prevtouch != touch) // If touch state changed
 		  GwenInput.ProcessTouch(touch);
@@ -135,9 +141,7 @@ int main(void) {
   sdStart(&SD2, NULL);
   palSetPadMode(GPIOA, 2, PAL_MODE_ALTERNATE(7));
   palSetPadMode(GPIOA, 3, PAL_MODE_ALTERNATE(7));
-
   shellInit();
-
 
   /*
    * Creates the example thread.

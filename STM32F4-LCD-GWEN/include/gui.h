@@ -13,7 +13,7 @@ using namespace Gwen;
 class testControl : public Controls::Base {
 
 public:
-	GWEN_CONTROL(testControl, Controls::Base);
+	GWEN_CONTROL(testControl, Controls::Base); // This is using Gwen's macro to declare the class constructor and a few needed functions.
 
 	void Button1_pressed(Controls::Base* control) {
 		//chprintf((BaseSequentialStream *)&SD2, "Button 1 Pressed\r\n");
@@ -27,16 +27,16 @@ public:
 		m_slider1->SetFloatValue(m_pgb1->GetValue()*100);
 		Pgb1_changed(this);
 	}
-	void Pgb1_changed(Gwen::Controls::Base* control) {
+	void Pgb1_changed(Controls::Base* control) {
 		std::string tmp("PGB1 val changed: ");
-		tmp += Gwen::Utility::ToString(m_pgb1->GetValue()*100)+"\r\n";
+		tmp += Utility::ToString(m_pgb1->GetValue()*100)+"\r\n";
 		chprintf((BaseSequentialStream *)&SD2, tmp.c_str());
 	}
 
-	void Slider1_changed(Gwen::Controls::Base* control) {
+	void Slider1_changed(Controls::Base* control) {
 		m_pgb1->SetValue(m_slider1->GetFloatValue()/100);
 		std::string tmp("Slider1 val changed: ");
-		tmp += Gwen::Utility::ToString(m_slider1->GetFloatValue())+"\r\n";
+		tmp += Utility::ToString(m_slider1->GetFloatValue())+"\r\n";
 		chprintf((BaseSequentialStream *)&SD2, tmp.c_str());
 	}
 
