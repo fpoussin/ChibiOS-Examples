@@ -40,19 +40,31 @@ public:
 		chprintf((BaseSequentialStream *)&SD2, tmp.c_str());
 	}
 
-	void OnComboSelect( Gwen::Controls::Base* pControl )
+	void OnComboSelect( Controls::Base* pControl )
 	{
 		std::string tmp("Combo Changed: ");
-		tmp += combo1->GetSelectedItem()->GetText().Get()+"\r\n";
+		tmp += m_combo1->GetSelectedItem()->GetText().Get()+"\r\n";
 		chprintf((BaseSequentialStream *)&SD2, tmp.c_str());
+	}
+
+	void OpenWindow( Controls::Base* pControl )
+	{
+			if (Controls::WindowControl::GetCount() < 10) {
+				Controls::WindowControl* pWindow = new Controls::WindowControl( GetCanvas() );
+				pWindow->SetTitle(std::string("Test Window ")+Utility::ToString(Controls::WindowControl::GetCount()));
+				pWindow->SetSize( 50+(rand()%150), 50+(rand()%150) );
+				pWindow->SetPos( 50+(rand()%150), 50+(rand()%50) );
+				pWindow->SetDeleteOnClose( true );
+			}
 	}
 
 private:
 	Controls::Button* m_but1;
 	Controls::Button* m_but2;
+	Controls::Button* m_but3;
 	Controls::ProgressBar* m_pgb1;
 	Controls::HorizontalSlider* m_slider1;
-	Controls::ComboBox* combo1;
+	Controls::ComboBox* m_combo1;
 };
 
 

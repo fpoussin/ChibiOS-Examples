@@ -25,14 +25,17 @@ GWEN_CONTROL_CONSTRUCTOR(testControl) // Macro
 	m_slider1->SetClampToNotches( true );
 	m_slider1->onValueChanged.Add( this, &testControl::Slider1_changed );
 
-	combo1 = new Controls::ComboBox( this );
-	combo1->SetBounds(240, 10, 150, 30);
+	m_combo1 = new Controls::ComboBox( this );
+	m_combo1->SetBounds(240, 10, 150, 30);
+	m_combo1->AddItem( "Option One", "one" );
+	m_combo1->AddItem( "Number Two", "two" );
+	m_combo1->AddItem( "Door Three", "three" );
+	m_combo1->AddItem( "Four Legs", "four" );
+	m_combo1->AddItem( "Five Birds", "five" );
+	m_combo1->onSelection.Add( this, &testControl::OnComboSelect );
 
-	combo1->AddItem( "Option One", "one" );
-	combo1->AddItem( "Number Two", "two" );
-	combo1->AddItem( "Door Three", "three" );
-	combo1->AddItem( "Four Legs", "four" );
-	combo1->AddItem( "Five Birds", "five" );
-
-	combo1->onSelection.Add( this, &testControl::OnComboSelect );
+	m_but3 = new Controls::Button( this );
+	m_but3->SetText( "Popup Window" );
+	m_but3->onPress.Add( this, &testControl::OpenWindow );
+	m_but3->SetPos( 10, 180 );
 }
