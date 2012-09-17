@@ -347,6 +347,9 @@
 #define LCD_USE_FSMC
 //#define LCD_USE_GPIO
 
+#define LCD_USE_DMA
+#define LCD_DMA_STREAM STM32_DMA2_STREAM6
+
 #if defined(LCD_USE_GPIO)
 
     #define LCD_CMD_PORT GPIOC

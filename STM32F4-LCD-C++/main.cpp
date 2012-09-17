@@ -45,6 +45,20 @@ TOUCHPADDriver TOUCHPADD1 = {
 	TRUE
 };
 
+static WORKING_AREA(waThread1, 128);
+__attribute__ ((__noreturn__))
+static msg_t Thread1(void *arg) {
+
+  (void)arg;
+  chRegSetThreadName("blinker");
+  while (TRUE) {
+    palSetPad(GPIOD, GPIOD_LED3);       /* Orange.  */
+    chThdSleepMilliseconds(500);
+    palClearPad(GPIOD, GPIOD_LED3);     /* Orange.  */
+    chThdSleepMilliseconds(500);
+  }
+}
+
 static WORKING_AREA(waThread2, 2048);
 __attribute__ ((__noreturn__))
 static msg_t Thread2(void *arg)  {
@@ -164,7 +178,7 @@ int main(void) {
   /*
    * Creates the example thread.
    */
-//  chThdCreateStatic(waThread1, sizeof(waThread1), NORMALPRIO, Thread1, NULL);
+  chThdCreateStatic(waThread1, sizeof(waThread1), NORMALPRIO, Thread1, NULL);
   chThdCreateStatic(waThread2, sizeof(waThread2), NORMALPRIO, Thread2, NULL);
   while (TRUE) {
     chThdSleepMilliseconds(500);
