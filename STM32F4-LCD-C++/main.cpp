@@ -149,7 +149,6 @@ static msg_t Thread2(void *arg)  {
 /*
  * Application entry point.
  */
-__attribute__ ((__noreturn__))
 int main(void) {
 
   /*

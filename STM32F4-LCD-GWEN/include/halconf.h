@@ -389,6 +389,7 @@
 	/* Any driver specific defines required go here. The below line is an example. */
 	#define GDISP_NEED_MULTITHREAD	TRUE
 	#define GDISP_NEED_CONTROL	TRUE
+	#define GDISP_NEED_VALIDATION	TRUE
 	#define GDISP_NEED_TEXT	TRUE
 #endif
 
