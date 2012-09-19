@@ -59,6 +59,26 @@ static msg_t Thread1(void *arg) {
   }
 }
 
+static WORKING_AREA(waThreadLoad1, 128);
+__attribute__ ((__noreturn__))
+static msg_t ThreadLoad1(void *arg) {
+
+  (void)arg;
+  chRegSetThreadName("load1");
+  uint32_t i;
+  while (TRUE) i++;
+}
+
+static WORKING_AREA(waThreadLoad2, 128);
+__attribute__ ((__noreturn__))
+static msg_t ThreadLoad2(void *arg) {
+
+  (void)arg;
+  chRegSetThreadName("load2");
+  uint32_t i;
+  while (TRUE) i++;
+}
+
 static WORKING_AREA(waThread2, 2048);
 __attribute__ ((__noreturn__))
 static msg_t Thread2(void *arg)  {
@@ -178,6 +198,8 @@ int main(void) {
    * Creates the example thread.
    */
   chThdCreateStatic(waThread1, sizeof(waThread1), NORMALPRIO, Thread1, NULL);
+  //chThdCreateStatic(waThreadLoad1, sizeof(waThreadLoad1), NORMALPRIO, ThreadLoad1, NULL);
+  //chThdCreateStatic(waThreadLoad2, sizeof(waThreadLoad2), NORMALPRIO, ThreadLoad2, NULL);
   chThdCreateStatic(waThread2, sizeof(waThread2), NORMALPRIO, Thread2, NULL);
   while (TRUE) {
     chThdSleepMilliseconds(500);
