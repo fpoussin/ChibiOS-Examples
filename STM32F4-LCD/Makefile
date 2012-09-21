@@ -76,8 +76,8 @@ include $(CHIBIOS)/ext/lcd/drivers/gdisp/SSD1963/gdisp_lld.mk
 #include $(CHIBIOS)/ext/lcd/drivers/touchpad/ADS7843/touchpad_lld.mk
 
 # Define linker script file here
-LDSCRIPT= $(PORTLD)/STM32F407xG.ld
-#LDSCRIPT= $(PORTLD)/STM32F407xG_CCM.ld
+#LDSCRIPT= $(PORTLD)/STM32F407xG.ld
+LDSCRIPT= $(PORTLD)/STM32F407xG_CCM.ld
 
 # C sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
