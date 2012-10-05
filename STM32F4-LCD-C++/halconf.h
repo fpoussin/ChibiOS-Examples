@@ -372,7 +372,7 @@
 	#define TP_IRQ_PORT 		GPIOC
 	#define TP_IRQ 			5
 
-	#define TP_W_OFFSET		(gdispGetWidth()/8)
+	#define TP_W_OFFSET		0
 	#define TP_H_OFFSET		0
 	#define TP_W_LINEARITY		0.89f
 	#define TP_H_LINEARITY		1.15f

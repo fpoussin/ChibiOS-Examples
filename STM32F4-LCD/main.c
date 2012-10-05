@@ -86,7 +86,6 @@ static msg_t Thread2(void *arg)  {
   chThdSleepMilliseconds(10);
 //  static GLCDConsole CON1;
 	gdispInit();
-//	gdispSetOrientation(landscape);
 	gdispClear(Black);
 
 	uint16_t width = gdispGetWidth();

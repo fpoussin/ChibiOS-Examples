@@ -71,9 +71,9 @@ include $(CHIBIOS)/os/hal/hal.mk
 include $(CHIBIOS)/os/ports/GCC/ARMCMx/STM32F4xx/port.mk
 include $(CHIBIOS)/os/kernel/kernel.mk
 include $(CHIBIOS)/test/test.mk
-include $(CHIBIOS)/ext/lcd/lcd.mk
-include $(CHIBIOS)/ext/lcd/drivers/gdisp/SSD1963/gdisp_lld.mk
-include $(CHIBIOS)/ext/lcd/drivers/touchpad/ADS7843/touchpad_lld.mk
+include $(CHIBIOS)/ext/gfx/gfx.mk
+include $(CHIBIOS)/ext/gfx/drivers/gdisp/SSD1963/gdisp_lld.mk
+include $(CHIBIOS)/ext/gfx/drivers/touchpad/ADS7843/touchpad_lld.mk
 
 # Define linker script file here
 #LDSCRIPT= $(PORTLD)/STM32F407xG.ld
@@ -87,7 +87,7 @@ CSRC = $(PORTSRC) \
        $(HALSRC) \
        $(PLATFORMSRC) \
        $(BOARDSRC) \
-       $(LCDSRC) \
+       $(GFXSRC) \
        $(CHIBIOS)/os/various/chprintf.c \
        $(CHIBIOS)/os/various/evtimer.c \
        $(CHIBIOS)/os/various/syscalls.c \
@@ -121,7 +121,7 @@ TCPPSRC =
 ASMSRC = $(PORTASM)
 
 INCDIR = $(PORTINC) $(KERNINC) $(TESTINC) \
-         $(HALINC) $(PLATFORMINC) $(BOARDINC) $(LCDINC) \
+         $(HALINC) $(PLATFORMINC) $(BOARDINC) $(GFXINC) \
          $(CHIBIOS)/os/various/devices_lib/accel \
          $(CHIBIOS)/os/various
 

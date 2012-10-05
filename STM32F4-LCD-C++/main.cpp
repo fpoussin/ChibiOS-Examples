@@ -96,7 +96,6 @@ static msg_t Thread2(void *arg)  {
 	srand(halGetCounterValue());
 	tpInit(&TOUCHPADD1);
 	tpCalibrate();
-//	gdispSetOrientation(landscape);
 	gdispClear(Black);
 
 	uint16_t width = gdispGetWidth();
@@ -110,9 +109,10 @@ static msg_t Thread2(void *arg)  {
 	gdispDrawString(0, 0, "X", &fontUI2Double, White);
 	 while (TRUE) {
 		 if (tpIRQ()) {
-			 // This is a dirty hack to get the position right...
-			x = ((float)width-((float)tpReadX()*2.0f))*TP_W_FIX;
-			y = ((float)tpReadY()/2.0f)*TP_H_FIX;
+
+			// This is a dirty hack to get the position right...
+			x = (tpReadY()*2)*TP_W_FIX;
+			y = (tpReadX()/2)*TP_H_FIX;
 
 			if (x < 20 && y < 20) break;
 			gdispDrawPixel(x, y, rand() % 65535);
