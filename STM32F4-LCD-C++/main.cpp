@@ -27,7 +27,6 @@
 #include "console.h"
 #include "touchpad.h"
 
-#include <string>
 #include <stdio.h>
 
 static const SPIConfig spicfg = {
@@ -156,12 +155,11 @@ static msg_t Thread2(void *arg)  {
 	  uint32_t ms = (halGetCounterValue()-start) / (halGetCounterFrequency()/1000);
 	  uint32_t pps = (float)pixels/((float)ms/1000.0f);
 
-	  char buf[20];
-	  snprintf(buf, sizeof(buf), "%u Pixels/s", pps);
-	  std::string pps_str = std::string(buf);
+	  char pps_str[20];
+	  snprintf(pps_str, sizeof(pps_str), "%lu Pixels/s", pps);
 
 	  gdispClear(Black);
-	  gdispDrawString(100, height/2, pps_str.c_str(), &fontUI2Double, White);
+	  gdispDrawString(100, height/2, pps_str, &fontUI2Double, White);
 	  chThdSleepMilliseconds(3000);
   }
 }

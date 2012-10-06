@@ -15,25 +15,33 @@ class testControl : public Controls::Base {
 public:
 	GWEN_CONTROL(testControl, Controls::Base); // This is using Gwen's macro to declare the class constructor and a few needed functions.
 
-	void Button1_pressed(Controls::Base* pControl) {
+	void Button1_pressed(Controls::Base* pControl)
+	{
+		(void)pControl;
 		//chprintf((BaseSequentialStream *)&SD2, "Button 1 Pressed\r\n");
 		m_pgb1->SetValue(m_pgb1->GetValue()-0.1f);
 		m_slider1->SetFloatValue(m_pgb1->GetValue()*100);
 		Pgb1_changed(this);
 	}
-	void Button2_pressed(Controls::Base* pControl) {
+	void Button2_pressed(Controls::Base* pControl)
+	{
+		(void)pControl;
 		//chprintf((BaseSequentialStream *)&SD2, "Button 2 Pressed\r\n");
 		m_pgb1->SetValue(m_pgb1->GetValue()+0.1f);
 		m_slider1->SetFloatValue(m_pgb1->GetValue()*100);
 		Pgb1_changed(this);
 	}
-	void Pgb1_changed(Controls::Base* pControl) {
+	void Pgb1_changed(Controls::Base* pControl)
+	{
+		(void)pControl;
 		std::string tmp("PGB1 val changed: ");
 		tmp += Utility::ToString(m_pgb1->GetValue()*100)+"\r\n";
 		chprintf((BaseSequentialStream *)&SD2, tmp.c_str());
 	}
 
-	void Slider1_changed(Controls::Base* pControl) {
+	void Slider1_changed(Controls::Base* pControl)
+	{
+		(void)pControl;
 		m_pgb1->SetValue(m_slider1->GetFloatValue()/100);
 		std::string tmp("Slider1 val changed: ");
 		tmp += Utility::ToString(m_slider1->GetFloatValue())+"\r\n";
@@ -42,6 +50,7 @@ public:
 
 	void OnComboSelect( Controls::Base* pControl )
 	{
+		(void)pControl;
 		std::string tmp("Combo Changed: ");
 		tmp += m_combo1->GetSelectedItem()->GetText().Get()+"\r\n";
 		chprintf((BaseSequentialStream *)&SD2, tmp.c_str());
@@ -49,13 +58,14 @@ public:
 
 	void OpenWindow( Controls::Base* pControl )
 	{
-			if (Controls::WindowControl::GetCount() < 10) {
-				Controls::WindowControl* pWindow = new Controls::WindowControl( GetCanvas() );
-				pWindow->SetTitle(std::string("Test Window ")+Utility::ToString(Controls::WindowControl::GetCount()));
-				pWindow->SetSize( 50+(rand()%150), 50+(rand()%150) );
-				pWindow->SetPos( 50+(rand()%150), 50+(rand()%50) );
-				pWindow->SetDeleteOnClose( true );
-			}
+		(void)pControl;
+		if (Controls::WindowControl::GetCount() < 10) {
+			Controls::WindowControl* pWindow = new Controls::WindowControl( GetCanvas() );
+			pWindow->SetTitle(std::string("Test Window ")+Utility::ToString(Controls::WindowControl::GetCount()));
+			pWindow->SetSize( 50+(rand()%150), 50+(rand()%150) );
+			pWindow->SetPos( 50+(rand()%150), 50+(rand()%50) );
+			pWindow->SetDeleteOnClose( true );
+		}
 	}
 
 private:
