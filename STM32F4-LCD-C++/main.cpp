@@ -110,8 +110,8 @@ static msg_t Thread2(void *arg)  {
 		 if (tpIRQ()) {
 
 			// This is a dirty hack to get the position right...
-			x = (tpReadY()*2)*TP_W_FIX;
-			y = (tpReadX()/2)*TP_H_FIX;
+			x = tpReadX()*TP_W_FIX;
+			y = tpReadY()*TP_H_FIX;
 
 			if (x < 20 && y < 20) break;
 			gdispDrawPixel(x, y, rand() % 65535);

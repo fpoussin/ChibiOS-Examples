@@ -375,10 +375,10 @@
 
 	#define TP_W_OFFSET		0
 	#define TP_H_OFFSET		0
-	#define TP_W_LINEARITY		0.89f
-	#define TP_H_LINEARITY		1.15f
-	#define TP_W_FIX TP_W_LINEARITY+(TP_W_OFFSET)
-	#define TP_H_FIX TP_H_LINEARITY+(TP_H_OFFSET)
+	#define TP_W_OFFSET		-20
+	#define TP_H_OFFSET		15
+	#define TP_W_LINEARITY		1.0f
+	#define TP_H_LINEARITY		1.0f
 #endif
 
 /**

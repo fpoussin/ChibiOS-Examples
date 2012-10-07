@@ -366,16 +366,17 @@
 #if !defined(HAL_USE_TOUCHPAD) || defined(__DOXYGEN__)
 	#define HAL_USE_TOUCHPAD   TRUE
 	#define TOUCHPAD_HAS_IRQ   TRUE
+	#define TOUCHPAD_XY_INVERTED   TRUE
 	#define TP_SPI 			SPID2
 	#define TP_CS_PORT 		GPIOB
 	#define TP_CS 				12
 	#define TP_IRQ_PORT 		GPIOC
 	#define TP_IRQ 			5
 
-	#define TP_W_OFFSET		0
-	#define TP_H_OFFSET		0
-	#define TP_W_LINEARITY		0.89f
-	#define TP_H_LINEARITY		1.15f
+	#define TP_W_OFFSET		-20
+	#define TP_H_OFFSET		15
+	#define TP_W_LINEARITY		1.0f
+	#define TP_H_LINEARITY		1.0f
 	#define TP_W_FIX TP_W_LINEARITY+(TP_W_OFFSET)
 	#define TP_H_FIX TP_H_LINEARITY+(TP_H_OFFSET)
 #endif
