@@ -373,12 +373,12 @@
 	#define TP_IRQ_PORT 		GPIOC
 	#define TP_IRQ 			5
 
-	#define TP_W_OFFSET		0
-	#define TP_H_OFFSET		0
-	#define TP_W_OFFSET		-20
-	#define TP_H_OFFSET		15
-	#define TP_W_LINEARITY		1.0f
-	#define TP_H_LINEARITY		1.0f
+        #define TP_W_OFFSET             -20
+        #define TP_H_OFFSET             15
+        #define TP_W_LINEARITY          1.0f
+        #define TP_H_LINEARITY          1.0f
+        #define TP_W_FIX TP_W_LINEARITY+(TP_W_OFFSET)
+        #define TP_H_FIX TP_H_LINEARITY+(TP_H_OFFSET)
 #endif
 
 /**
