@@ -341,8 +341,8 @@
 /* GDISP driver related settings.                                              */
 /*===========================================================================*/
 
-#define SCREEN_WIDTH 480
-#define SCREEN_HEIGHT 272
+#define GDISP_SCREEN_WIDTH 480
+#define GDISP_SCREEN_HEIGHT 272
 
 #define GDISP_USE_FSMC
 //#define GDISP_USE_GPIO
