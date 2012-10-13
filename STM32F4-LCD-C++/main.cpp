@@ -90,7 +90,7 @@ static msg_t Thread2(void *arg)  {
   chThdSleepMilliseconds(10);
   palSetPad(GPIOC, GPIOC_PIN6);
   chThdSleepMilliseconds(10);
-//  static GLCDConsole CON1;
+//  static GFXConsole CON1;
 	gdispInit();
 	srand(halGetCounterValue());
 	tpInit(&TOUCHPADD1);
@@ -109,7 +109,6 @@ static msg_t Thread2(void *arg)  {
 	 while (TRUE) {
 		 if (tpIRQ()) {
 
-			// This is a dirty hack to get the position right...
 			x = tpReadX();
 			y = tpReadY();
 
@@ -122,7 +121,7 @@ static msg_t Thread2(void *arg)  {
 	 gdispClear(Black);
   while (TRUE) {
 
-//		lcdConsoleInit(&CON1, 0, 0, gdispGetWidth(), gdispGetHeight(), &fontLarger, Black, White);
+//		gfxConsoleInit(&CON1, 0, 0, gdispGetWidth(), gdispGetHeight(), &fontLarger, Black, White);
 //		TestThread(&CON1);
 
 	  gdispFillArea(10, 10, width-20, height-20, Grey);
