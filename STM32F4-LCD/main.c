@@ -26,6 +26,8 @@
 #include "stdlib.h"
 #include "string.h"
 #include "test.h"
+#include "graph.h"
+#include "math.h"
 
 int uitoa(unsigned int value, char * buf, int max) {
 	int n = 0;
@@ -111,12 +113,82 @@ static msg_t Thread2(void *arg)  {
 	  const char *msg = "ChibiOS/GFX on SSD1963";
 	  gdispDrawString(width-gdispGetStringWidth(msg, &fontUI2Double)-3, height-24, msg, &fontUI2Double, White);
 
-	  chThdSleepMilliseconds(1000);
+	  chThdSleepMilliseconds(2000);
 
+	  gdispClear(Black);
+	    Graph G1 = {
+	    	width/2,
+	    	height/2,
+	        -225,
+	        225,
+	        -130,
+	        130,
+	        20,
+	        5,
+	        TRUE,
+	        TRUE,
+	        White,
+	        Grey,
+	    };
+
+	    graphDrawSystem(&G1);
+
+	    uint16_t i;
+	    for(i = 0; i < 2500; i++)
+	        graphDrawDot(&G1, i-(width/2), 80*sin(2*0.2*M_PI*i/180), 1, Blue);
+
+	    for(i = 0; i < 2500; i++)
+	        graphDrawDot(&G1, i/5-(width/2), 95*sin(2*0.2*M_PI*i/180), 1, Green);
+
+	    chThdSleepMilliseconds(1500);
+
+		  gdispClear(Black);
+		    Graph G2 = {
+		    	100,
+		    	100,
+		        -100,
+		        100,
+		        -100,
+		        100,
+		        20,
+		        5,
+		        FALSE,
+		        TRUE,
+		        White,
+		        Grey,
+		    };
+
+		    Graph G3 = {
+		    	width-100,
+		    	height-100,
+		        -100,
+		        100,
+		        -100,
+		        100,
+		        20,
+		        5,
+		        TRUE,
+		        FALSE,
+		        White,
+		        Grey,
+		    };
+
+		    graphDrawSystem(&G2);
+		    graphDrawSystem(&G3);
+
+		    for(i = 0; i < 2500; i++) {
+		        graphDrawDot(&G2, i-(width/5), 80*sin(2*0.2*M_PI*i/180), 1, Blue);
+		        graphDrawDot(&G3, i-(width/5), 80*sin(2*0.2*M_PI*i/180), 1, Blue);
+		    }
+		    for(i = 0; i < 2500; i++) {
+		        graphDrawDot(&G2, i/5-(width/5), 95*sin(2*0.2*M_PI*i/180), 1, Green);
+		        graphDrawDot(&G3, i/5-(width/5), 95*sin(2*0.2*M_PI*i/180), 1, Green);
+		    }
+		    chThdSleepMilliseconds(2000);
 
 	  pixels = 0;
 	  gdispClear(Black);
-	  gdispDrawString(50, height/2, "Doing 5000 random rectangles", &fontUI2Double, White);
+	  gdispDrawString(60, height/2, "Doing 5000 random rectangles", &fontUI2Double, White);
 	  chThdSleepMilliseconds(2000);
 	  uint32_t start = halGetCounterValue();
 	  for (i = 0; i < 5000; i++) {

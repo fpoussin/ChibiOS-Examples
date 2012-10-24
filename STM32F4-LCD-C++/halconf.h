@@ -363,8 +363,8 @@
 /**
   * @brief   Enables the Touchpad subsystem.
   */
-#if !defined(HAL_USE_TOUCHPAD) || defined(__DOXYGEN__)
-	#define HAL_USE_TOUCHPAD   TRUE
+#if !defined(GFX_USE_TOUCHPAD) || defined(__DOXYGEN__)
+	#define GFX_USE_TOUCHPAD   TRUE
 	#define TOUCHPAD_HAS_IRQ   TRUE
 	#define TOUCHPAD_XY_INVERTED   TRUE
 	#define TP_SPI 			SPID2
@@ -384,12 +384,13 @@
 /**
   * @brief   Enables the GDISP subsystem.
   */
-#if !defined(HAL_USE_GDISP) || defined(__DOXYGEN__)
-	#define HAL_USE_GDISP           TRUE
+#if !defined(GFX_USE_GDISP) || defined(__DOXYGEN__)
+	#define GFX_USE_GDISP           TRUE
 	/* Any driver specific defines required go here. The below line is an example. */
 	#define GDISP_NEED_MULTITHREAD	TRUE
 	#define GDISP_NEED_VALIDATION	TRUE
-	#define GDISP_NEED_CONTROL	TRUE
+	#define GDISP_NEED_CONTROL		TRUE
+	#define GDISP_NEED_TEXT			TRUE
 #endif
 
 #endif /* _HALCONF_H_ */

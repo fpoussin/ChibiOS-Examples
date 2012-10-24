@@ -350,6 +350,8 @@
 #define GDISP_USE_DMA
 #define GDISP_DMA_STREAM STM32_DMA2_STREAM6
 
+#define GFX_USE_GRAPH 			TRUE
+
 #if defined(GDISP_USE_GPIO)
 
     #define GDISP_CMD_PORT GPIOC
@@ -364,18 +366,18 @@
 /**
   * @brief   Enables the Touchpad subsystem.
   */
-#if !defined(HAL_USE_TOUCHPAD) || defined(__DOXYGEN__)
-	#define HAL_USE_TOUCHPAD           FALSE
+#if !defined(GFX_USE_TOUCHPAD) || defined(__DOXYGEN__)
+	#define GFX_USE_TOUCHPAD           FALSE
 #endif
 
 /**
   * @brief   Enables the GDISP subsystem.
   */
-#if !defined(HAL_USE_GDISP) || defined(__DOXYGEN__)
-	#define HAL_USE_GDISP           TRUE
+#if !defined(GFX_USE_GDISP) || defined(__DOXYGEN__)
+	#define GFX_USE_GDISP           TRUE
 	/* Any driver specific defines required go here. The below line is an example. */
 	#define GDISP_NEED_MULTITHREAD	TRUE
-	#define GDISP_NEED_CONTROL	TRUE
+	#define GDISP_NEED_CONTROL		TRUE
 #endif
 
 #endif /* _HALCONF_H_ */
