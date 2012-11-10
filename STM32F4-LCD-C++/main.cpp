@@ -25,22 +25,22 @@
 
 #include "gdisp.h"
 #include "console.h"
-#include "touchpad.h"
+#include "touchscreen.h"
 
 #include <stdio.h>
 
 static const SPIConfig spicfg = {
     NULL,
-    TP_CS_PORT,
-    TP_CS,
+    TS_CS_PORT,
+    TS_CS,
     /* SPI_CR1_BR_2 |*/ SPI_CR1_BR_1 | SPI_CR1_BR_0,
 };
 
-TOUCHPADDriver TOUCHPADD1 = {
+TouchscreenDriver TSD1 = {
 	&SPID2,
 	&spicfg,
-	TP_IRQ_PORT,
-	TP_IRQ,
+	TS_IRQ_PORT,
+	TS_IRQ,
 	TRUE
 };
 
@@ -93,8 +93,7 @@ static msg_t Thread2(void *arg)  {
 //  static GFXConsole CON1;
 	gdispInit();
 	srand(halGetCounterValue());
-	tpInit(&TOUCHPADD1);
-	tpCalibrate();
+	tsInit(&TSD1);
 	gdispClear(Black);
 
 	uint16_t width = gdispGetWidth();
@@ -107,10 +106,10 @@ static msg_t Thread2(void *arg)  {
 	gdispDrawString(50, height/2, "Draw pixels or quit using the cross", &fontUI2Double, Red);
 	gdispDrawString(0, 0, "X", &fontUI2Double, White);
 	 while (TRUE) {
-		 if (tpIRQ()) {
+		 if (tsPressed()) {
 
-			x = tpReadX();
-			y = tpReadY();
+			x = tsReadX();
+			y = tsReadY();
 
 			if (x < 20 && y < 20) break;
 			gdispDrawPixel(x, y, rand() % 65535);
