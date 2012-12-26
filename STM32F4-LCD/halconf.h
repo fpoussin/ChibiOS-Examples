@@ -337,49 +337,6 @@
 #define SPI_USE_MUTUAL_EXCLUSION    TRUE
 #endif
 
-/*===========================================================================*/
-/* GDISP driver related settings.                                              */
-/*===========================================================================*/
-
-#define GDISP_SCREEN_WIDTH 480
-#define GDISP_SCREEN_HEIGHT 272
-
-#define GDISP_USE_FSMC
-//#define GDISP_USE_GPIO
-
-#define GDISP_USE_DMA
-#define GDISP_DMA_STREAM STM32_DMA2_STREAM6
-
-#define GFX_USE_GRAPH 			TRUE
-
-#if defined(GDISP_USE_GPIO)
-
-    #define GDISP_CMD_PORT GPIOC
-    #define GDISP_DATA_PORT GPIOD
-
-    #define GDISP_CS 0
-    #define GDISP_RS 1
-    #define GDISP_WR 2
-    #define GDISP_RD 3
-#endif
-
-/**
-  * @brief   Enables the Touchpad subsystem.
-  */
-#if !defined(GFX_USE_TOUCHPAD) || defined(__DOXYGEN__)
-	#define GFX_USE_TOUCHPAD           FALSE
-#endif
-
-/**
-  * @brief   Enables the GDISP subsystem.
-  */
-#if !defined(GFX_USE_GDISP) || defined(__DOXYGEN__)
-	#define GFX_USE_GDISP           TRUE
-	/* Any driver specific defines required go here. The below line is an example. */
-	#define GDISP_NEED_MULTITHREAD	TRUE
-	#define GDISP_NEED_CONTROL		TRUE
-#endif
-
 #endif /* _HALCONF_H_ */
 
 /** @} */
