@@ -23,26 +23,9 @@
 #include "test.h"
 #include "stdlib.h"
 
-#include "gdisp.h"
-#include "console.h"
-#include "touchscreen.h"
+#include "gfx.h"
 
 #include <stdio.h>
-
-static const SPIConfig spicfg = {
-    NULL,
-    TS_CS_PORT,
-    TS_CS,
-    /* SPI_CR1_BR_2 |*/ SPI_CR1_BR_1 | SPI_CR1_BR_0,
-};
-
-TouchscreenDriver TSD1 = {
-	&SPID2,
-	&spicfg,
-	TS_IRQ_PORT,
-	TS_IRQ,
-	TRUE
-};
 
 static WORKING_AREA(waThread1, 128);
 __attribute__ ((__noreturn__))
@@ -90,38 +73,37 @@ static msg_t Thread2(void *arg)  {
   chThdSleepMilliseconds(10);
   palSetPad(GPIOC, GPIOC_PIN6);
   chThdSleepMilliseconds(10);
-//  static GFXConsole CON1;
+
 	gdispInit();
 	srand(halGetCounterValue());
-	tsInit(&TSD1);
+	GEventMouse	ev;
+	ginputGetMouse(0);
+	//tsInit(&TSD1);
 	gdispClear(Black);
 
 	uint16_t width = gdispGetWidth();
 	uint16_t height = gdispGetHeight();
 
+	const font_t font1 = gdispOpenFont("UI2 Double");
+
 	uint32_t i=0, pixels;
 	color_t random_color;
 	uint16_t rx, ry, rcx, rcy;
-	volatile uint16_t x, y;
-	gdispDrawString(50, height/2, "Draw pixels or quit using the cross", &fontUI2Double, Red);
-	gdispDrawString(0, 0, "X", &fontUI2Double, White);
+	gdispDrawString(50, height/2, "Draw pixels or quit using the cross", font1, Red);
+	gdispDrawString(0, 0, "X", font1, White);
 	 while (TRUE) {
-		 if (tsPressed()) {
+		 if (ev.current_buttons & GINPUT_MOUSE_BTN_LEFT) {
 
-			x = tsReadX();
-			y = tsReadY();
+			ginputGetMouseStatus(0, &ev);
 
-			if (x < 20 && y < 20) break;
-			gdispDrawPixel(x, y, rand() % 65535);
-			gdispDrawString(0, 0, "X", &fontUI2Double, White);
+			if (ev.x < 20 && ev.y < 20) break;
+			gdispDrawPixel(ev.x, ev.y, rand() % 65535);
+			gdispDrawString(0, 0, "X", font1, White);
 		 }
 		 chThdSleepMilliseconds(5);
 	 }
 	 gdispClear(Black);
   while (TRUE) {
-
-//		gfxConsoleInit(&CON1, 0, 0, gdispGetWidth(), gdispGetHeight(), &fontLarger, Black, White);
-//		TestThread(&CON1);
 
 	  gdispFillArea(10, 10, width-20, height-20, Grey);
 	  gdispFillArea(30, 30, 300, 150, Red);
@@ -130,14 +112,14 @@ static msg_t Thread2(void *arg)  {
 	  gdispFillCircle(width/2, height/2, 50, White);
 
 	  const char *msg = "ChibiOS/GFX on SSD1963";
-	  gdispDrawString(width-gdispGetStringWidth(msg, &fontUI2Double)-3, height-24, msg, &fontUI2Double, White);
+	  gdispDrawString(width-gdispGetStringWidth(msg, font1)-3, height-24, msg, font1, White);
 
 	  chThdSleepMilliseconds(1000);
 
 
 	  pixels = 0;
 	  gdispClear(Black);
-	  gdispDrawString(50, height/2, "Doing 5000 random rectangles", &fontUI2Double, White);
+	  gdispDrawString(50, height/2, "Doing 5000 random rectangles", font1, White);
 	  chThdSleepMilliseconds(2000);
 	  uint32_t start = halGetCounterValue();
 	  for (i = 0; i < 5000; i++) {
@@ -157,7 +139,7 @@ static msg_t Thread2(void *arg)  {
 	  snprintf(pps_str, sizeof(pps_str), "%lu Pixels/s", pps);
 
 	  gdispClear(Black);
-	  gdispDrawString(100, height/2, pps_str, &fontUI2Double, White);
+	  gdispDrawString(100, height/2, pps_str, font1, White);
 	  chThdSleepMilliseconds(3000);
   }
 }

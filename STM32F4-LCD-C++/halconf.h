@@ -337,56 +337,6 @@
 #define SPI_USE_MUTUAL_EXCLUSION    TRUE
 #endif
 
-/*===========================================================================*/
-/* GDISP driver related settings.                                              */
-/*===========================================================================*/
-
-#define GDISP_SCREEN_WIDTH 480
-#define GDISP_SCREEN_HEIGHT 272
-
-#define GDISP_USE_FSMC
-//#define GDISP_USE_GPIO
-
-#define GDISP_USE_DMA
-#define GDISP_DMA_STREAM STM32_DMA2_STREAM6
-
-#if defined(GDISP_USE_GPIO)
-
-    #define GDISP_CMD_PORT GPIOC
-    #define GDISP_DATA_PORT GPIOD
-
-    #define GDISP_CS 0
-    #define GDISP_RS 1
-    #define GDISP_WR 2
-    #define GDISP_RD 3
-#endif
-/**
-  * @brief   Enables the Touchpad subsystem.
-  */
-#if !defined(GFX_USE_TOUCHSCREEN ) || defined(__DOXYGEN__)
-	#define GFX_USE_TOUCHSCREEN    TRUE
-	#define TOUCHSCREEN_HAS_IRQ   TRUE
-	#define TOUCHSCREEN_STORE_CALIBRATION FALSE
-	#define TOUCHSCREEN_XY_INVERTED   TRUE
-	#define TS_SPI 			SPID2
-	#define TS_CS_PORT 		GPIOB
-	#define TS_CS 				12
-	#define TS_IRQ_PORT 		GPIOC
-	#define TS_IRQ 			5
-#endif
-
-/**
-  * @brief   Enables the GDISP subsystem.
-  */
-#if !defined(GFX_USE_GDISP) || defined(__DOXYGEN__)
-	#define GFX_USE_GDISP           TRUE
-	/* Any driver specific defines required go here. The below line is an example. */
-	#define GDISP_NEED_MULTITHREAD	TRUE
-	#define GDISP_NEED_VALIDATION	TRUE
-	#define GDISP_NEED_CONTROL		TRUE
-	#define GDISP_NEED_TEXT			TRUE
-#endif
-
 #endif /* _HALCONF_H_ */
 
 /** @} */

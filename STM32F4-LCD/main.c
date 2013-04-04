@@ -21,12 +21,10 @@
 #include "ch.h"
 #include "hal.h"
 #include "chprintf.h"
-#include "gdisp.h"
-#include "console.h"
+#include "gfx.h"
 #include "stdlib.h"
 #include "string.h"
 #include "test.h"
-#include "graph.h"
 #include "math.h"
 
 int uitoa(unsigned int value, char * buf, int max) {
@@ -86,7 +84,7 @@ static msg_t Thread2(void *arg)  {
   chThdSleepMilliseconds(10);
   palSetPad(GPIOC, GPIOC_PIN6);
   chThdSleepMilliseconds(10);
-//  static GLCDConsole CON1;
+  GHandle GW1;
 	gdispInit();
 	gdispClear(Black);
 
@@ -99,10 +97,14 @@ static msg_t Thread2(void *arg)  {
 	uint16_t rx, ry, rcx, rcy;
 	char pps_str[25];
 	srand(halGetCounterValue());
+
+	const font_t font1 = gdispOpenFont("UI2 Double");
+
   while (TRUE) {
 
-//		lcdConsoleInit(&CON1, 0, 0, gdispGetWidth(), gdispGetHeight(), &fontLarger, Black, White);
-//		TestThread(&CON1);
+	  GW1 = gwinCreateConsole(NULL, 0, 0, gdispGetWidth(), gdispGetHeight()/2, font1);
+		gwinSetColor(GW1, Green);
+		gwinSetBgColor(GW1, Black);
 
 	  gdispFillArea(10, 10, width-20, height-20, Grey);
 	  gdispFillArea(30, 30, 300, 150, Red);
@@ -111,8 +113,8 @@ static msg_t Thread2(void *arg)  {
 	  gdispFillCircle(width/2, height/2, 50, White);
 
 	  const char *msg = "ChibiOS/GFX on SSD1963";
-	  gdispDrawString(width-gdispGetStringWidth(msg, &fontUI2Double)-3, height-24, msg, &fontUI2Double, White);
-
+	  gdispDrawString(width-gdispGetStringWidth(msg, font1)-3, height-24, msg, font1, White);
+/*
 	  chThdSleepMilliseconds(2000);
 
 	  gdispClear(Black);
@@ -185,10 +187,10 @@ static msg_t Thread2(void *arg)  {
 		        graphDrawDot(&G3, i/5-(width/5), 95*sin(2*0.2*M_PI*i/180), 1, Green);
 		    }
 		    chThdSleepMilliseconds(2000);
-
+*/
 	  pixels = 0;
 	  gdispClear(Black);
-	  gdispDrawString(60, height/2, "Doing 5000 random rectangles", &fontUI2Double, White);
+	  gdispDrawString(60, height/2, "Doing 5000 random rectangles", font1, White);
 	  chThdSleepMilliseconds(2000);
 	  uint32_t start = halGetCounterValue();
 	  for (i = 0; i < 5000; i++) {
@@ -209,7 +211,7 @@ static msg_t Thread2(void *arg)  {
 	  strcat(pps_str, " Pixels/s");
 
 	  gdispClear(Black);
-	  gdispDrawString(100, height/2, pps_str, &fontUI2Double, White);
+	  gdispDrawString(100, height/2, pps_str, font1, White);
 	  chThdSleepMilliseconds(3000);
   }
 }
