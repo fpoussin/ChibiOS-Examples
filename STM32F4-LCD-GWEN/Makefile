@@ -73,7 +73,7 @@ include $(CHIBIOS)/test/test.mk
 include $(CHIBIOS)/ext/gfx/gfx.mk
 include $(CHIBIOS)/ext/gfx/drivers/gdisp/SSD1963/gdisp_lld.mk
 include $(CHIBIOS)/ext/gfx/drivers/ginput/touch/ADS7843/ginput_lld.mk
-include $(CHIBIOS)/ext/gwen/gwen.mk
+include $(CHIBIOS)/ext/gwen/gwen-lib.mk
 
 # Define linker script file here
 #LDSCRIPT= $(PORTLD)/STM32F407xG.ld
@@ -209,10 +209,10 @@ UADEFS =
 UINCDIR =
 
 # List the user directory to look for the libraries here
-ULIBDIR =
+ULIBDIR = $(GWENLIB)
 
 # List all user libraries here
-ULIBS =
+ULIBS = -lgwen-cm4d
 
 #
 # End of user defines
