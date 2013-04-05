@@ -32,21 +32,6 @@
     #define GDISP_RD 3
 #endif
 
-/**
-  * @brief   Enables the Touchpad subsystem.
-  */
-#if !defined(GFX_USE_TOUCHSCREEN ) || defined(__DOXYGEN__)
-	#define GFX_USE_TOUCHSCREEN    TRUE
-	#define TOUCHSCREEN_HAS_IRQ   TRUE
-	#define TOUCHSCREEN_STORE_CALIBRATION FALSE
-	#define TOUCHSCREEN_XY_INVERTED   TRUE
-	#define TS_SPI 			SPID2
-	#define TS_CS_PORT 		GPIOB
-	#define TS_CS 				12
-	#define TS_IRQ_PORT 		GPIOC
-	#define TS_IRQ 			5
-#endif
-
 /* GFX sub-systems to turn on */
 #define GFX_USE_GDISP			TRUE
 #define GFX_USE_GWIN			TRUE
@@ -70,6 +55,7 @@
 
 #define GINPUT_NEED_MOUSE		TRUE
 #define GINPUT_MOUSE_USE_CUSTOM_BOARD TRUE
+#define GINPUT_MOUSE_YX_INVERTED TRUE
 
 /* Features for the GWIN sub-system. */
 #define GWIN_NEED_GRAPH		TRUE

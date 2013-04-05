@@ -78,7 +78,6 @@ static msg_t Thread2(void *arg)  {
 	srand(halGetCounterValue());
 	GEventMouse	ev;
 	ginputGetMouse(0);
-	//tsInit(&TSD1);
 	gdispClear(Black);
 
 	uint16_t width = gdispGetWidth();

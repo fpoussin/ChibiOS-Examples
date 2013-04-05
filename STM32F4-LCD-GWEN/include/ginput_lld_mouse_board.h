@@ -30,10 +30,15 @@
 #ifndef _GINPUT_LLD_MOUSE_BOARD_H
 #define _GINPUT_LLD_MOUSE_BOARD_H
 
+#define TP_CS_PORT GPIOB
+#define TP_CS 12
+#define TS_IRQ_PORT GPIOC
+#define TS_IRQ 	5
+
 static const SPIConfig spicfg = { 
     NULL,
-	GPIOG, 
-    10,
+    TP_CS_PORT,
+    TP_CS,
     /* SPI_CR1_BR_2 |*/ SPI_CR1_BR_1 | SPI_CR1_BR_0,
 };
 
@@ -43,6 +48,10 @@ static const SPIConfig spicfg = {
  * @notapi
  */
 static inline void init_board(void) {
+
+	IOBus busB = {GPIOB, (1 << 12) | (1 << 13) | (1 << 14) | (1 << 15), 0};
+	palSetBusMode(&busB, PAL_MODE_ALTERNATE(5));
+
 	spiStart(&SPID2, &spicfg);
 }
 
@@ -53,7 +62,7 @@ static inline void init_board(void) {
  * @notapi
  */
 static inline bool_t getpin_pressed(void) {
-	return (!palReadPad(GPIOG, 0));
+	return (palReadPad(TS_IRQ_PORT, TS_IRQ));
 }
 /**
  * @brief   Aquire the bus ready for readings
@@ -63,7 +72,7 @@ static inline bool_t getpin_pressed(void) {
 static inline void aquire_bus(void) {
 	spiAcquireBus(&SPID2);
     //TOUCHSCREEN_SPI_PROLOGUE();
-    palClearPad(GPIOG, 10);
+    palClearPad(TP_CS_PORT, TP_CS);
 }
 
 /**
@@ -72,7 +81,7 @@ static inline void aquire_bus(void) {
  * @notapi
  */
 static inline void release_bus(void) {
-	palSetPad(GPIOG, 10);
+	palSetPad(TP_CS_PORT, TP_CS);
 	spiReleaseBus(&SPID2);
     //TOUCHSCREEN_SPI_EPILOGUE();
 }
