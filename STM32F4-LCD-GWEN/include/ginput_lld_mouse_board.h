@@ -39,7 +39,7 @@ static const SPIConfig spicfg = {
     NULL,
     TP_CS_PORT,
     TP_CS,
-    /* SPI_CR1_BR_2 |*/ SPI_CR1_BR_1 | SPI_CR1_BR_0,
+    /*SPI_CR1_BR_2 | */SPI_CR1_BR_1 | SPI_CR1_BR_0,
 };
 
 /**
@@ -48,9 +48,20 @@ static const SPIConfig spicfg = {
  * @notapi
  */
 static inline void init_board(void) {
-
-	IOBus busB = {GPIOB, (1 << 12) | (1 << 13) | (1 << 14) | (1 << 15), 0};
-	palSetBusMode(&busB, PAL_MODE_ALTERNATE(5));
+	/*
+	* SPI2 I/O pins setup.
+	*/
+	palSetPadMode(GPIOB, 13, PAL_MODE_ALTERNATE(5) |
+			   PAL_STM32_OSPEED_HIGHEST);       /* New SCK.     */
+	palSetPadMode(GPIOB, 14, PAL_MODE_ALTERNATE(5) |
+			   PAL_STM32_OSPEED_HIGHEST);       /* New MISO.    */
+	palSetPadMode(GPIOB, 15, PAL_MODE_ALTERNATE(5) |
+			   PAL_STM32_OSPEED_HIGHEST);       /* New MOSI.    */
+	palSetPadMode(GPIOB, 12, PAL_MODE_OUTPUT_PUSHPULL |
+			   PAL_STM32_OSPEED_HIGHEST);       /* New CS.      */
+	palSetPad(TP_CS_PORT, TP_CS);
+	
+	palSetPadMode(TS_IRQ_PORT, TS_IRQ, PAL_MODE_INPUT_PULLUP);
 
 	spiStart(&SPID2, &spicfg);
 }
@@ -62,7 +73,7 @@ static inline void init_board(void) {
  * @notapi
  */
 static inline bool_t getpin_pressed(void) {
-	return (palReadPad(TS_IRQ_PORT, TS_IRQ));
+	return (!palReadPad(TS_IRQ_PORT, TS_IRQ));
 }
 /**
  * @brief   Aquire the bus ready for readings
@@ -70,9 +81,9 @@ static inline bool_t getpin_pressed(void) {
  * @notapi
  */
 static inline void aquire_bus(void) {
-	spiAcquireBus(&SPID2);
-    //TOUCHSCREEN_SPI_PROLOGUE();
-    palClearPad(TP_CS_PORT, TP_CS);
+	spiAcquireBus(&SPID2);              /* Acquire ownership of the bus.    */
+	spiStart(&SPID2, &spicfg);       /* Setup transfer parameters.       */
+	spiSelect(&SPID2);                  /* Slave Select assertion.          */
 }
 
 /**
@@ -81,9 +92,8 @@ static inline void aquire_bus(void) {
  * @notapi
  */
 static inline void release_bus(void) {
-	palSetPad(TP_CS_PORT, TP_CS);
-	spiReleaseBus(&SPID2);
-    //TOUCHSCREEN_SPI_EPILOGUE();
+	spiUnselect(&SPID2);                /* Slave Select de-assertion.       */
+	spiReleaseBus(&SPID2);              /* Ownership release.               */
 }
 
 /**
@@ -94,17 +104,17 @@ static inline void release_bus(void) {
  *
  * @notapi
  */
-static inline uint16_t read_value(uint16_t port) {
-    static uint8_t txbuf[3] = {0};
-    static uint8_t rxbuf[3] = {0};
+static inline uint16_t read_value(uint8_t cmd) {
+    static uint8_t txbuf[3] = {0,0,0};
+    static uint8_t rxbuf[3] = {0,0,0};
     uint16_t ret;
 
-    txbuf[0] = port;
+    txbuf[0] = cmd;
 
     spiExchange(&SPID2, 3, txbuf, rxbuf);
 
     ret = (rxbuf[1] << 5) | (rxbuf[2] >> 3); 
-    
+
 	return ret;
 }
 

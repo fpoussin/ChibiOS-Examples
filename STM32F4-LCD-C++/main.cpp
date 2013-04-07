@@ -76,6 +76,7 @@ static msg_t Thread2(void *arg)  {
 
 	gdispInit();
 	srand(halGetCounterValue());
+		
 	GEventMouse	ev;
 	ginputGetMouse(0);
 	gdispClear(Black);
@@ -91,6 +92,7 @@ static msg_t Thread2(void *arg)  {
 	gdispDrawString(50, height/2, "Draw pixels or quit using the cross", font1, Red);
 	gdispDrawString(0, 0, "X", font1, White);
 	 while (TRUE) {
+		 ginputGetMouseStatus(0, &ev);
 		 if (ev.current_buttons & GINPUT_MOUSE_BTN_LEFT) {
 
 			ginputGetMouseStatus(0, &ev);
@@ -157,20 +159,6 @@ int main(void) {
    */
   halInit();
   chSysInit();
-
-  /*
-   * SPI2 I/O pins setup.
-   */
-  palSetPadMode(GPIOB, 13, PAL_MODE_ALTERNATE(5) |
-                           PAL_STM32_OSPEED_HIGHEST);       /* New SCK.     */
-  palSetPadMode(GPIOB, 14, PAL_MODE_ALTERNATE(5) |
-                           PAL_STM32_OSPEED_HIGHEST);       /* New MISO.    */
-  palSetPadMode(GPIOB, 15, PAL_MODE_ALTERNATE(5) |
-                           PAL_STM32_OSPEED_HIGHEST);       /* New MOSI.    */
-  palSetPadMode(GPIOB, 12, PAL_MODE_OUTPUT_PUSHPULL |
-                           PAL_STM32_OSPEED_HIGHEST);       /* New CS.      */
-  palSetPad(GPIOB, 12);
-
   /*
    * Creates the example thread.
    */
