@@ -3,6 +3,7 @@
 	<FileVersion major="1" minor="6" />
 	<Project>
 		<Option title="gwen" />
+		<Option makefile_is_custom="1" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
@@ -17,11 +18,35 @@
 				<Linker>
 					<Add option="-s" />
 				</Linker>
+				<MakeCommands>
+					<Build command="$make -f $makefile" />
+					<CompileFile command="$make -f $makefile $file" />
+					<Clean command="$make -f $makefile clean" />
+					<DistClean command="$make -f $makefile distclean$target" />
+					<AskRebuildNeeded command="$make -q -f $makefile" />
+					<SilentBuild command="$make -s -f $makefile" />
+				</MakeCommands>
 			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Unit filename="Makefile" />
+		<Unit filename="include/chconf.h" />
+		<Unit filename="include/gdisp_lld_board.h" />
+		<Unit filename="include/gdisp_lld_panel.h" />
+		<Unit filename="include/gfxconf.h" />
+		<Unit filename="include/ginput_lld_mouse_board.h" />
+		<Unit filename="include/gui.h" />
+		<Unit filename="include/halconf.h" />
+		<Unit filename="include/mcuconf.h" />
+		<Unit filename="include/shellconfig.h" />
+		<Unit filename="main.cpp" />
+		<Unit filename="src/gui.cpp" />
+		<Unit filename="src/hacks.cpp" />
+		<Unit filename="src/stubs.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Extensions>
 			<code_completion />
 			<envvars />

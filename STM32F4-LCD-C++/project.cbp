@@ -7,7 +7,7 @@
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
-			<Target title="lcd_cpp.bin">
+			<Target title="Release">
 				<Option output="bin/Release/lcd_cpp" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
@@ -18,6 +18,14 @@
 				<Linker>
 					<Add option="-s" />
 				</Linker>
+				<MakeCommands>
+					<Build command="$make -f $makefile" />
+					<CompileFile command="$make -f $makefile $file" />
+					<Clean command="$make -f $makefile clean" />
+					<DistClean command="$make -f $makefile distclean$target" />
+					<AskRebuildNeeded command="$make -q -f $makefile" />
+					<SilentBuild command="$make -s -f $makefile" />
+				</MakeCommands>
 			</Target>
 		</Build>
 		<Compiler>

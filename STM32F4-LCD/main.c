@@ -68,7 +68,6 @@ int uitoa(unsigned int value, char * buf, int max) {
 	if (-1 != i) {
 		buf[i--] = '-';
 	}
-
 	return n;
 }
 
@@ -100,11 +99,11 @@ static msg_t Thread2(void *arg)  {
 
 	const font_t font1 = gdispOpenFont("UI2 Double");
 
-  while (TRUE) {
+	while (TRUE) {
 
-	  GW1 = gwinCreateConsole(NULL, 0, 0, gdispGetWidth(), gdispGetHeight()/2, font1);
-		gwinSetColor(GW1, Green);
-		gwinSetBgColor(GW1, Black);
+	GW1 = gwinCreateConsole(NULL, 0, 0, gdispGetWidth(), gdispGetHeight()/2, font1);
+	gwinSetColor(GW1, Green);
+	gwinSetBgColor(GW1, Black);
 
 	  gdispFillArea(10, 10, width-20, height-20, Grey);
 	  gdispFillArea(30, 30, 300, 150, Red);
@@ -114,9 +113,9 @@ static msg_t Thread2(void *arg)  {
 
 	  const char *msg = "ChibiOS/GFX on SSD1963";
 	  gdispDrawString(width-gdispGetStringWidth(msg, font1)-3, height-24, msg, font1, White);
-/*
-	  chThdSleepMilliseconds(2000);
 
+	  chThdSleepMilliseconds(2000);
+/*
 	  gdispClear(Black);
 	    Graph G1 = {
 	    	width/2,
