@@ -29,28 +29,28 @@
 #include "arm_math.h"
 
 #define TEST_LENGTH_SAMPLES 2048
+#define FFT_SIZE 1024
 
 /* ------------------------------------------------------------------
 * Global variables for FFT Bin Example
 * ------------------------------------------------------------------- */
-uint32_t fftSize = 1024;
-uint32_t ifftFlag = 0;
-uint32_t doBitReverse = 1;
+const uint32_t ifftFlag = 0;
+const uint32_t doBitReverse = 1;
 
 /* -------------------------------------------------------------------
 * External Input and Output buffer Declarations for FFT Bin Example
 * ------------------------------------------------------------------- */
 extern float32_t testInput_f32_10khz[TEST_LENGTH_SAMPLES];
-static float32_t testOutput[1024];
+static float32_t testOutput[FFT_SIZE];
 
-/* Reference index at which max energy of bin occurs
+/* Reference index at which max energy of bin occurs in the test samples
  * This is to verify computation is successful */
-uint32_t refIndex = 213, testIndex = 0;
-
+const uint32_t refIndex = 213;
+uint32_t testIndex = 0;
 
 int uitoa(unsigned int value, char * buf, int max);
 
-static WORKING_AREA(waThread2, 2048);
+static WORKING_AREA(waThread2, 16384);
 __attribute__ ((__noreturn__))
 static msg_t Thread2(void *arg)  {
 
@@ -79,24 +79,23 @@ static msg_t Thread2(void *arg)  {
 	arm_cfft_radix4_instance_f32 S;
 	float32_t maxValue;
 
-	status = ARM_MATH_SUCCESS;
-
 	while (TRUE) {
 
+		status = ARM_MATH_SUCCESS;
 		gdispClear(Black);
 
 		/* Initialize the CFFT/CIFFT module */
-		status = arm_cfft_radix4_init_f32(&S, fftSize, ifftFlag, doBitReverse);
+		status = arm_cfft_radix4_init_f32(&S, FFT_SIZE, ifftFlag, doBitReverse);
 
 		/* Process the data through the CFFT/CIFFT module */
 		arm_cfft_radix4_f32(&S, testInput_f32_10khz);
 
 		/* Process the data through the Complex Magnitude Module for
 		calculating the magnitude at each bin */
-		arm_cmplx_mag_f32(testInput_f32_10khz, testOutput, fftSize);
+		arm_cmplx_mag_f32(testInput_f32_10khz, testOutput, FFT_SIZE);
 
 		/* Calculates maxValue and returns corresponding BIN value */
-		arm_max_f32(testOutput, fftSize, &maxValue, &testIndex);
+		arm_max_f32(testOutput, FFT_SIZE, &maxValue, &testIndex);
 
 		/* We verify the result is what it should be */
 		if(testIndex !=  refIndex)
