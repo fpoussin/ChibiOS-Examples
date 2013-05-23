@@ -1,0 +1,19 @@
+ 
+DSPSRC += $(DSPBASE)/TransformFunctions/arm_cfft_radix4_f32.c
+DSPSRC += $(DSPBASE)/TransformFunctions/arm_cfft_radix4_init_f32.c
+DSPSRC += $(DSPBASE)/TransformFunctions/arm_cfft_radix4_init_q15.c
+DSPSRC += $(DSPBASE)/TransformFunctions/arm_cfft_radix4_init_q31.c
+DSPSRC += $(DSPBASE)/TransformFunctions/arm_cfft_radix4_q15.c
+DSPSRC += $(DSPBASE)/TransformFunctions/arm_cfft_radix4_q31.c
+DSPSRC += $(DSPBASE)/TransformFunctions/arm_dct4_f32.c
+DSPSRC += $(DSPBASE)/TransformFunctions/arm_dct4_init_f32.c
+DSPSRC += $(DSPBASE)/TransformFunctions/arm_dct4_init_q15.c
+DSPSRC += $(DSPBASE)/TransformFunctions/arm_dct4_init_q31.c
+DSPSRC += $(DSPBASE)/TransformFunctions/arm_dct4_q15.c
+DSPSRC += $(DSPBASE)/TransformFunctions/arm_dct4_q31.c
+DSPSRC += $(DSPBASE)/TransformFunctions/arm_rfft_f32.c
+DSPSRC += $(DSPBASE)/TransformFunctions/arm_rfft_init_f32.c
+DSPSRC += $(DSPBASE)/TransformFunctions/arm_rfft_init_q15.c
+DSPSRC += $(DSPBASE)/TransformFunctions/arm_rfft_init_q31.c
+DSPSRC += $(DSPBASE)/TransformFunctions/arm_rfft_q15.c
+DSPSRC += $(DSPBASE)/TransformFunctions/arm_rfft_q31.c
