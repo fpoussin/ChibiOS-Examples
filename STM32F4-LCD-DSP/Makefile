@@ -89,7 +89,7 @@ CSRC = $(PORTSRC) \
        $(GFXSRC) \
        $(CHIBIOS)/os/various/chprintf.c \
        $(DSPSRC) \
-       main.c arm_fft_bin_data.c
+       main.c arm_fft_bin_data.c uitoa.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.

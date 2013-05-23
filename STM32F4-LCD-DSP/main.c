@@ -30,12 +30,6 @@
 
 #define TEST_LENGTH_SAMPLES 2048
 
-/* -------------------------------------------------------------------
-* External Input and Output buffer Declarations for FFT Bin Example
-* ------------------------------------------------------------------- */
-extern float32_t testInput_f32_10khz[TEST_LENGTH_SAMPLES];
-static float32_t testOutput[TEST_LENGTH_SAMPLES/2];
-
 /* ------------------------------------------------------------------
 * Global variables for FFT Bin Example
 * ------------------------------------------------------------------- */
@@ -43,53 +37,18 @@ uint32_t fftSize = 1024;
 uint32_t ifftFlag = 0;
 uint32_t doBitReverse = 1;
 
-/* Reference index at which max energy of bin ocuurs */
+/* -------------------------------------------------------------------
+* External Input and Output buffer Declarations for FFT Bin Example
+* ------------------------------------------------------------------- */
+extern float32_t testInput_f32_10khz[TEST_LENGTH_SAMPLES];
+static float32_t testOutput[1024];
+
+/* Reference index at which max energy of bin occurs
+ * This is to verify computation is successful */
 uint32_t refIndex = 213, testIndex = 0;
 
 
-int uitoa(unsigned int value, char * buf, int max) {
-	int n = 0;
-	int i = 0;
-	unsigned int tmp = 0;
-
-	if (NULL == buf) {
-		return -3;
-	}
-
-	if (2 > max) {
-		return -4;
-	}
-
-	i=1;
-	tmp = value;
-	for (;;) {
-		tmp /= 10;
-		if (0 >= tmp) {
-			break;
-		}
-		i++;
-	}
-	if (i >= max) {
-		buf[0] = '?';
-		buf[1] = 0x0;
-		return 2;
-	}
-
-	n = i;
-	tmp = value;
-	buf[i--] = 0x0;
-	for (;;) {
-		buf[i--] = (tmp % 10) + '0';
-		tmp /= 10;
-		if (0 >= tmp) {
-			break;
-		}
-	}
-	if (-1 != i) {
-		buf[i--] = '-';
-	}
-	return n;
-}
+int uitoa(unsigned int value, char * buf, int max);
 
 static WORKING_AREA(waThread2, 2048);
 __attribute__ ((__noreturn__))
@@ -111,7 +70,7 @@ static msg_t Thread2(void *arg)  {
 	uint16_t height = gdispGetHeight();
 
 	const font_t font1 = gdispOpenFont("UI2 Double");
-	const char *msg = "ChibiOS/GFX on SSD1963";
+	const char *msg = "ChibiOS/GFX DSP Demo";
 
 	const char *dsp_success = "FFT SUCCESS";
 	const char *dsp_fail = "FFT FAILED";
@@ -123,6 +82,7 @@ static msg_t Thread2(void *arg)  {
 	status = ARM_MATH_SUCCESS;
 
 	while (TRUE) {
+
 		gdispClear(Black);
 
 		/* Initialize the CFFT/CIFFT module */
@@ -138,11 +98,13 @@ static msg_t Thread2(void *arg)  {
 		/* Calculates maxValue and returns corresponding BIN value */
 		arm_max_f32(testOutput, fftSize, &maxValue, &testIndex);
 
+		/* We verify the result is what it should be */
 		if(testIndex !=  refIndex)
 		{
 			status = ARM_MATH_TEST_FAILURE;
 		}
 
+		/* Print success/fail string on LCD */
 		if( status != ARM_MATH_SUCCESS)
 		{
 			gdispDrawString(width-gdispGetStringWidth(dsp_fail, font1)-3, height/2, dsp_fail, font1, White);
@@ -155,7 +117,6 @@ static msg_t Thread2(void *arg)  {
 		gdispDrawString(width-gdispGetStringWidth(msg, font1)-3, height-24, msg, font1, White);
 
 		chThdSleepMilliseconds(2000);
-
 	}
 }
 
