@@ -25,11 +25,18 @@
 #include "stdlib.h"
 #include "string.h"
 #include "test.h"
-#include "math.h"
 #include "arm_math.h"
 
-#define TEST_LENGTH_SAMPLES 2048
 #define FFT_SIZE 256
+#define SIN_TABLE_SIZE 2048
+#define TWO_PI (M_PI * 2.0f)
+
+const q15_t phaseIncrement = TWO_PI/SIN_TABLE_SIZE/8;
+q15_t currentPhase = 0.0;
+
+q15_t samples [SIN_TABLE_SIZE];
+q15_t input_tmp[SIN_TABLE_SIZE];
+q15_t testOutput[FFT_SIZE];
 
 /* ------------------------------------------------------------------
 * Global variables for FFT Bin Example
@@ -37,20 +44,7 @@
 const uint32_t ifftFlag = 0;
 const uint32_t doBitReverse = 1;
 
-/* -------------------------------------------------------------------
-* External Input and Output buffer Declarations for FFT Bin Example
-* ------------------------------------------------------------------- */
-extern const float32_t testInput_f32_10khz[TEST_LENGTH_SAMPLES];
-static float32_t testOutput[FFT_SIZE];
-
-/* Reference index at which max energy of bin occurs in the test samples
- * This is to verify computation is successful */
-const uint32_t refIndex = 213;
-uint32_t testIndex = 0;
-
 int uitoa(unsigned int value, char * buf, int max);
-
-float32_t input_tmp[TEST_LENGTH_SAMPLES];
 
 static WORKING_AREA(waThread2, 16384);
 __attribute__ ((__noreturn__))
@@ -68,68 +62,58 @@ static msg_t Thread2(void *arg)  {
 	gdispInit();
 	gdispClear(Black);
 
-	uint16_t width = gdispGetWidth();
-	uint16_t height = gdispGetHeight();
+	const uint16_t width = gdispGetWidth();
+	const uint16_t height = gdispGetHeight();
 
 	const font_t font1 = gdispOpenFont("UI2 Double");
-	const char *msg = "ChibiOS/GFX DSP Demo";
 
-	const char *dsp_fail = "FFT FAILED";
+	uint32_t cnt, us;
+	char time_str[8];
+	char idx_str[8];
 
-	uint32_t cnt;
-	char time_str[25];
-	uint32_t us;
+	arm_cfft_radix4_instance_q15 S;
+	q15_t maxValue;
+	uint32_t maxIndex = 0;
 
-	arm_status status;
-	arm_cfft_radix4_instance_f32 S;
-	float32_t maxValue;
+	/* Initialize the CFFT/CIFFT module */
+	arm_cfft_radix4_init_q15(&S, FFT_SIZE, ifftFlag, doBitReverse);
 
 	while (TRUE) {
 
-		status = ARM_MATH_SUCCESS;
-		gdispClear(Blue);
-		memcpy(input_tmp, testInput_f32_10khz, TEST_LENGTH_SAMPLES);
-		memset(testOutput, 0, FFT_SIZE);
+		int i;
+		for (i=0 ; i < SIN_TABLE_SIZE ; i+=2)
+		{
+			samples[i] = arm_sin_q15(currentPhase += phaseIncrement);
+			samples[i+1] = 0.0f;
+		}
 
-		/* Initialize the CFFT/CIFFT module */
-		status = arm_cfft_radix4_init_f32(&S, FFT_SIZE, ifftFlag, doBitReverse);
+		gdispClear(Blue);
+		memset(testOutput, 0, FFT_SIZE);
 
 		cnt = halGetCounterValue();
 		/* Process the data through the CFFT/CIFFT module */
-		arm_cfft_radix4_f32(&S, input_tmp);
+		arm_cfft_radix4_q15(&S, samples);
 
 		/* Process the data through the Complex Magnitude Module for
 		calculating the magnitude at each bin */
-		arm_cmplx_mag_f32(input_tmp, testOutput, FFT_SIZE);
+		arm_cmplx_mag_q15(samples, testOutput, FFT_SIZE);
 
 		cnt = halGetCounterValue() - cnt;
 		memset (time_str, 0, sizeof(time_str));
 		us = cnt / 168;
 		uitoa(us, time_str, sizeof(time_str));
 		/* Calculates maxValue and returns corresponding BIN value */
-		//arm_max_f32(testOutput, FFT_SIZE, &maxValue, &testIndex);
+		arm_max_q15(testOutput, FFT_SIZE, &maxValue, &maxIndex);
 
-		/* We verify the result is what it should be */
-		if(testIndex !=  refIndex)
+		uitoa(maxIndex, idx_str, sizeof(idx_str));
+
+		for (i=1 ; i < FFT_SIZE && i < width ; i++)
 		{
-			status = ARM_MATH_TEST_FAILURE;
+			gdispFillArea(i*2, 0, 2, testOutput[i]*3, White);
 		}
 
-		/* Print success/fail string on LCD */
-/*		if( status != ARM_MATH_SUCCESS)
-		{
-			gdispDrawString((width/2)-gdispGetStringWidth(dsp_fail, font1)/2, height/2, dsp_fail, font1, White);
-		}
-		else
-		{
-	*/
-			int i;
-			for (i=0 ; i < FFT_SIZE && i < width ; i++) {
-
-				gdispFillArea(i*2, 0, 2, testOutput[i]*3, White);
-			}
-		//}
 		gdispDrawString(width-gdispGetStringWidth(time_str, font1)-3, height-24, time_str, font1, Grey);
+		gdispDrawString(width-gdispGetStringWidth(idx_str, font1)-3, height-48, idx_str, font1, Grey);
 
 		chThdSleepMilliseconds(2000);
 	}
