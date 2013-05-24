@@ -27,16 +27,18 @@
 #include "test.h"
 #include "arm_math.h"
 
-#define FFT_SIZE 256
+#define FFT_SIZE 256 // 4096-1024-256-64-16 lengths supported by DSP library
 #define SIN_TABLE_SIZE 2048
 #define TWO_PI (M_PI * 2.0f)
+#define SAMPLING_RATE 48000
 
-const q15_t phaseIncrement = TWO_PI/SIN_TABLE_SIZE/8;
-q15_t currentPhase = 0.0;
+int16_t phaseIncrement = 0;
+int16_t currentPhase = 0;
 
-q15_t samples [SIN_TABLE_SIZE];
-q15_t input_tmp[SIN_TABLE_SIZE];
-q15_t testOutput[FFT_SIZE];
+int16_t samples[SIN_TABLE_SIZE];
+int16_t input_tmp[SIN_TABLE_SIZE];
+int16_t testOutput[FFT_SIZE];
+extern const float32_t testInput_f32_10khz[2048];
 
 /* ------------------------------------------------------------------
 * Global variables for FFT Bin Example
@@ -69,10 +71,10 @@ static msg_t Thread2(void *arg)  {
 
 	uint32_t cnt, us;
 	char time_str[8];
-	char idx_str[8];
+	char freq_str[8];
 
 	arm_cfft_radix4_instance_q15 S;
-	q15_t maxValue;
+	int16_t maxValue;
 	uint32_t maxIndex = 0;
 
 	/* Initialize the CFFT/CIFFT module */
@@ -81,11 +83,17 @@ static msg_t Thread2(void *arg)  {
 	while (TRUE) {
 
 		int i;
-		for (i=0 ; i < SIN_TABLE_SIZE ; i+=2)
+
+		phaseIncrement += 500;
+		if (phaseIncrement > 30000) phaseIncrement = 0;
+		currentPhase = 0.0;
+		for (i=0 ; i < SIN_TABLE_SIZE/2 ; i++)
 		{
-			samples[i] = arm_sin_q15(currentPhase += phaseIncrement);
-			samples[i+1] = 0.0f;
+			samples[i*2] = arm_sin_q15(currentPhase += phaseIncrement);
+			samples[(i*2)+1] = 0;
 		}
+
+		//arm_float_to_q15((float32_t*)testInput_f32_10khz, samples, SIN_TABLE_SIZE);
 
 		gdispClear(Blue);
 		memset(testOutput, 0, FFT_SIZE);
@@ -96,26 +104,30 @@ static msg_t Thread2(void *arg)  {
 
 		/* Process the data through the Complex Magnitude Module for
 		calculating the magnitude at each bin */
-		arm_cmplx_mag_q15(samples, testOutput, FFT_SIZE);
+		arm_cmplx_mag_q15(samples, testOutput, FFT_SIZE/2); // We only care about the first half
 
 		cnt = halGetCounterValue() - cnt;
-		memset (time_str, 0, sizeof(time_str));
-		us = cnt / 168;
+		us = cnt / 168; // 168mhz = 168 instructions per us
 		uitoa(us, time_str, sizeof(time_str));
 		/* Calculates maxValue and returns corresponding BIN value */
-		arm_max_q15(testOutput, FFT_SIZE, &maxValue, &maxIndex);
+		arm_max_q15(testOutput, FFT_SIZE/2, &maxValue, &maxIndex); // We only care about the first half
 
-		uitoa(maxIndex, idx_str, sizeof(idx_str));
+		uitoa((SAMPLING_RATE*maxIndex)/FFT_SIZE, freq_str, sizeof(freq_str));
 
-		for (i=1 ; i < FFT_SIZE && i < width ; i++)
+		uint16_t s;
+		for (i=1 ; i < FFT_SIZE/2 && i < width ; i++) // We only display the first half as the rest is useless.
 		{
-			gdispFillArea(i*2, 0, 2, testOutput[i]*3, White);
+			s = testOutput[i] >> 4;
+			gdispFillArea(i*4, height-s, 4, s, White);
 		}
 
-		gdispDrawString(width-gdispGetStringWidth(time_str, font1)-3, height-24, time_str, font1, Grey);
-		gdispDrawString(width-gdispGetStringWidth(idx_str, font1)-3, height-48, idx_str, font1, Grey);
+		gdispDrawString(0, 0, "FFT+MAG Processing time in us", font1, White);
+		gdispDrawString(width-gdispGetStringWidth(time_str, font1)-3, 0, time_str, font1, White);
 
-		chThdSleepMilliseconds(2000);
+		gdispDrawString(0, 24, "Peak freq in HZ", font1, White);
+		gdispDrawString(width-gdispGetStringWidth(freq_str, font1)-3, 24, freq_str, font1, White);
+
+		chThdSleepMilliseconds(50);
 	}
 }
 
