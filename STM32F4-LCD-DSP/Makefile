@@ -72,6 +72,7 @@ include $(CHIBIOS)/os/kernel/kernel.mk
 include $(CHIBIOS)/test/test.mk
 include $(CHIBIOS)/ext/gfx/gfx.mk
 include $(CHIBIOS)/ext/gfx/drivers/gdisp/SSD1963/gdisp_lld.mk
+include dsp_lib/dsp.mk
 
 # Define linker script file here
 #LDSCRIPT= $(PORTLD)/STM32F407xG.ld
@@ -88,6 +89,9 @@ CSRC = $(PORTSRC) \
        $(GFXSRC) \
        $(CHIBIOS)/os/various/chprintf.c \
        main.c arm_fft_bin_data.c uitoa.c
+       
+# If you want to compile the DSP library instead of using the static library file.
+#CSRC += $(DSPSRC)
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
@@ -202,7 +206,10 @@ UINCDIR =
 ULIBDIR = dsp_lib
 
 # List all user libraries here
-ULIBS = -lm -larm_cortexM4lf_math
+ULIBS = -lm
+
+#if you want to use the static library file (faster compilation)
+ULIBS += -lmath_cm4f
 
 #
 # End of user defines
