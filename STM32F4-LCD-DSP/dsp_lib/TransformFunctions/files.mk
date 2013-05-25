@@ -1,4 +1,11 @@
- 
+
+DSPSRC += $(DSPBASE)/TransformFunctions/arm_bitreversal.c
+DSPSRC += $(DSPBASE)/TransformFunctions/arm_cfft_radix2_f32.c
+DSPSRC += $(DSPBASE)/TransformFunctions/arm_cfft_radix2_init_f32.c
+DSPSRC += $(DSPBASE)/TransformFunctions/arm_cfft_radix2_init_q15.c
+DSPSRC += $(DSPBASE)/TransformFunctions/arm_cfft_radix2_init_q31.c
+DSPSRC += $(DSPBASE)/TransformFunctions/arm_cfft_radix2_q15.c
+DSPSRC += $(DSPBASE)/TransformFunctions/arm_cfft_radix2_q31.c
 DSPSRC += $(DSPBASE)/TransformFunctions/arm_cfft_radix4_f32.c
 DSPSRC += $(DSPBASE)/TransformFunctions/arm_cfft_radix4_init_f32.c
 DSPSRC += $(DSPBASE)/TransformFunctions/arm_cfft_radix4_init_q15.c

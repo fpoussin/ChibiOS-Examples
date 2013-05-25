@@ -1,59 +1,62 @@
-/* ----------------------------------------------------------------------   
-* Copyright (C) 2010 ARM Limited. All rights reserved.   
-*   
-* $Date:        15. July 2011  
-* $Revision: 	V1.0.10  
-*   
-* Project: 	    CMSIS DSP Library   
-* Title:		arm_sin_q31.c   
-*   
-* Description:	Fast sine calculation for Q31 values.  
-*   
+/* ----------------------------------------------------------------------    
+* Copyright (C) 2010 ARM Limited. All rights reserved.    
+*    
+* $Date:        15. February 2012  
+* $Revision: 	V1.1.0  
+*    
+* Project: 	    CMSIS DSP Library    
+* Title:		arm_sin_q31.c    
+*    
+* Description:	Fast sine calculation for Q31 values.   
+*    
 * Target Processor: Cortex-M4/Cortex-M3/Cortex-M0
 *  
-* Version 1.0.10 2011/7/15 
-*    Big Endian support added and Merged M0 and M3/M4 Source code.  
+* Version 1.1.0 2012/02/15 
+*    Updated with more optimizations, bug fixes and minor API changes.  
 *   
-* Version 1.0.3 2010/11/29  
-*    Re-organized the CMSIS folders and updated documentation.   
+* Version 1.0.10 2011/7/15  
+*    Big Endian support added and Merged M0 and M3/M4 Source code.   
 *    
-* Version 1.0.2 2010/11/11   
-*    Documentation updated.    
-*   
-* Version 1.0.1 2010/10/05    
-*    Production release and review comments incorporated.   
-*   
-* Version 1.0.0 2010/09/20    
-*    Production release and review comments incorporated.   
+* Version 1.0.3 2010/11/29   
+*    Re-organized the CMSIS folders and updated documentation.    
+*     
+* Version 1.0.2 2010/11/11    
+*    Documentation updated.     
+*    
+* Version 1.0.1 2010/10/05     
+*    Production release and review comments incorporated.    
+*    
+* Version 1.0.0 2010/09/20     
+*    Production release and review comments incorporated.    
 * -------------------------------------------------------------------- */
 
 #include "arm_math.h"
 
+/**    
+ * @ingroup groupFastMath    
+ */
+
+ /**    
+ * @addtogroup sin    
+ * @{    
+ */
+
 /**   
- * @ingroup groupFastMath   
- */
-
- /**   
- * @addtogroup sin   
- * @{   
- */
-
-/**  
- * \par   
- * Tables generated are in Q31(1.31 Fixed point format)   
- * Generation of sin values in floating point:   
- * <pre>tableSize = 256;     
- * for(n = -1; n < (tableSize + 1); n++)   
- * {   
- *	sinTable[n+1]= sin(2*pi*n/tableSize);   
- * } </pre>   
- * where pi value is  3.14159265358979   
- * \par   
- * Convert Floating point to Q31(Fixed point):   
- *	(sinTable[i] * pow(2, 31))   
- * \par   
- * rounding to nearest integer is done   
- * 	sinTable[i] += (sinTable[i] > 0 ? 0.5 :-0.5);   
+ * \par    
+ * Tables generated are in Q31(1.31 Fixed point format)    
+ * Generation of sin values in floating point:    
+ * <pre>tableSize = 256;      
+ * for(n = -1; n < (tableSize + 1); n++)    
+ * {    
+ *	sinTable[n+1]= sin(2*pi*n/tableSize);    
+ * } </pre>    
+ * where pi value is  3.14159265358979    
+ * \par    
+ * Convert Floating point to Q31(Fixed point):    
+ *	(sinTable[i] * pow(2, 31))    
+ * \par    
+ * rounding to nearest integer is done    
+ * 	sinTable[i] += (sinTable[i] > 0 ? 0.5 :-0.5);    
  */
 
 static const q31_t sinTableQ31[259] = {
@@ -125,19 +128,19 @@ static const q31_t sinTableQ31[259] = {
 };
 
 
-/**  
- * @brief Fast approximation to the trigonometric sine function for Q31 data.  
- * @param[in] x Scaled input value in radians.  
- * @return  sin(x).  
- *  
- * The Q31 input value is in the range [0 +1) and is mapped to a radian value in the range [0 2*pi).  
+/**   
+ * @brief Fast approximation to the trigonometric sine function for Q31 data.   
+ * @param[in] x Scaled input value in radians.   
+ * @return  sin(x).   
+ *   
+ * The Q31 input value is in the range [0 +0.9999] and is mapped to a radian value in the range [0 2*pi), Here range excludes 2*pi.   
  */
 
 q31_t arm_sin_q31(
   q31_t x)
 {
   q31_t sinVal, in, in2;                         /* Temporary variables for input, output */
-  uint32_t index;                                /* Index variables */
+  int32_t index;                                 /* Index variables */
   q31_t wa, wb, wc, wd;                          /* Cubic interpolation coefficients */
   q31_t a, b, c, d;                              /* Four nearest output values */
   q31_t *tablePtr;                               /* Pointer to table */
@@ -164,6 +167,16 @@ q31_t arm_sin_q31(
   /* fractCube = fract * fract * fract */
   fractCube = ((q31_t) (((q63_t) fractSquare * fract) >> 32));
   fractCube = fractCube << 1;
+
+  /* Checking min and max index of table */
+  if(index < 0)
+  {
+    index = 0;
+  }
+  else if(index > 256)
+  {
+    index = 256;
+  }
 
   /* Initialise table pointer */
   tablePtr = (q31_t *) & sinTableQ31[index];
@@ -218,10 +231,10 @@ q31_t arm_sin_q31(
   sinVal = (q31_t) ((((q63_t) sinVal << 32) + ((q63_t) d * wd)) >> 32);
 
   /* convert sinVal in 2.30 format to 1.31 format */
-  return (sinVal << 1u);
+  return (__QADD(sinVal, sinVal));
 
 }
 
-/**   
- * @} end of sin group   
+/**    
+ * @} end of sin group    
  */

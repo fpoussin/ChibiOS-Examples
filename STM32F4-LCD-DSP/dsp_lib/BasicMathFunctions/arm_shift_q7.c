@@ -1,59 +1,66 @@
-/* ----------------------------------------------------------------------   
-* Copyright (C) 2010 ARM Limited. All rights reserved.   
-*   
-* $Date:        15. July 2011  
-* $Revision: 	V1.0.10  
-*   
-* Project: 	    CMSIS DSP Library   
-* Title:		arm_shift_q7.c   
-*   
-* Description:	Processing function for the Q7 Shifting   
-*   
+/* ----------------------------------------------------------------------    
+* Copyright (C) 2010 ARM Limited. All rights reserved.    
+*    
+* $Date:        15. February 2012  
+* $Revision: 	V1.1.0  
+*    
+* Project: 	    CMSIS DSP Library    
+* Title:		arm_shift_q7.c    
+*    
+* Description:	Processing function for the Q7 Shifting    
+*    
 * Target Processor: Cortex-M4/Cortex-M3/Cortex-M0
 *  
-* Version 1.0.10 2011/7/15 
-*    Big Endian support added and Merged M0 and M3/M4 Source code.  
+* Version 1.1.0 2012/02/15 
+*    Updated with more optimizations, bug fixes and minor API changes.  
 *   
-* Version 1.0.3 2010/11/29  
-*    Re-organized the CMSIS folders and updated documentation.   
+* Version 1.0.10 2011/7/15  
+*    Big Endian support added and Merged M0 and M3/M4 Source code.   
 *    
-* Version 1.0.2 2010/11/11   
-*    Documentation updated.    
-*   
-* Version 1.0.1 2010/10/05    
-*    Production release and review comments incorporated.   
-*   
-* Version 1.0.0 2010/09/20    
-*    Production release and review comments incorporated.   
-*   
-* Version 0.0.7  2010/06/10    
-*    Misra-C changes done   
+* Version 1.0.3 2010/11/29   
+*    Re-organized the CMSIS folders and updated documentation.    
+*     
+* Version 1.0.2 2010/11/11    
+*    Documentation updated.     
+*    
+* Version 1.0.1 2010/10/05     
+*    Production release and review comments incorporated.    
+*    
+* Version 1.0.0 2010/09/20     
+*    Production release and review comments incorporated.    
+*    
+* Version 0.0.7  2010/06/10     
+*    Misra-C changes done    
 * -------------------------------------------------------------------- */
 
 #include "arm_math.h"
 
-/**   
- * @ingroup groupMath   
+/**        
+ * @ingroup groupMath        
  */
 
-/**   
- * @addtogroup shift   
- * @{   
+/**        
+ * @addtogroup shift        
+ * @{        
  */
 
 
-/**   
- * @brief  Shifts the elements of a Q7 vector a specified number of bits.   
- * @param[in]  *pSrc points to the input vector   
- * @param[in]  shiftBits number of bits to shift.  A positive value shifts left; a negative value shifts right.   
- * @param[out]  *pDst points to the output vector   
- * @param[in]  blockSize number of samples in the vector   
- * @return none.   
- *   
- * <b>Scaling and Overflow Behavior:</b>   
- * \par   
- * The function uses saturating arithmetic.   
- * Results outside of the allowable Q7 range [0x8 0x7F] will be saturated.   
+/**        
+ * @brief  Shifts the elements of a Q7 vector a specified number of bits.        
+ * @param[in]  *pSrc points to the input vector        
+ * @param[in]  shiftBits number of bits to shift.  A positive value shifts left; a negative value shifts right.        
+ * @param[out]  *pDst points to the output vector        
+ * @param[in]  blockSize number of samples in the vector        
+ * @return none.        
+ *    
+ * \par Conditions for optimum performance    
+ *  Input and output buffers should be aligned by 32-bit    
+ *    
+ *        
+ * <b>Scaling and Overflow Behavior:</b>        
+ * \par        
+ * The function uses saturating arithmetic.        
+ * Results outside of the allowable Q7 range [0x8 0x7F] will be saturated.        
  */
 
 void arm_shift_q7(
@@ -83,28 +90,30 @@ void arm_shift_q7(
   /* If the shift value is positive then do right shift else left shift */
   if(sign == 0u)
   {
-    /* First part of the processing with loop unrolling.  Compute 4 outputs at a time.   
+    /* First part of the processing with loop unrolling.  Compute 4 outputs at a time.    
      ** a second loop below computes the remaining 1 to 3 samples. */
     while(blkCnt > 0u)
     {
       /* C = A << shiftBits */
       /* Read 4 inputs */
-      in1 = *pSrc++;
-      in2 = *pSrc++;
-      in3 = *pSrc++;
-      in4 = *pSrc++;
+      in1 = *pSrc;
+      in2 = *(pSrc + 1);
+      in3 = *(pSrc + 2);
+      in4 = *(pSrc + 3);
 
       /* Store the Shifted result in the destination buffer in single cycle by packing the outputs */
       *__SIMD32(pDst)++ = __PACKq7(__SSAT((in1 << shiftBits), 8),
                                    __SSAT((in2 << shiftBits), 8),
                                    __SSAT((in3 << shiftBits), 8),
                                    __SSAT((in4 << shiftBits), 8));
+      /* Update source pointer to process next sampels */
+      pSrc += 4u;
 
       /* Decrement the loop counter */
       blkCnt--;
     }
 
-    /* If the blockSize is not a multiple of 4, compute any remaining output samples here.   
+    /* If the blockSize is not a multiple of 4, compute any remaining output samples here.        
      ** No loop unrolling is used. */
     blkCnt = blockSize % 0x4u;
 
@@ -120,26 +129,30 @@ void arm_shift_q7(
   }
   else
   {
-    /* First part of the processing with loop unrolling.  Compute 4 outputs at a time.   
+    shiftBits = -shiftBits;
+    /* First part of the processing with loop unrolling.  Compute 4 outputs at a time.    
      ** a second loop below computes the remaining 1 to 3 samples. */
     while(blkCnt > 0u)
     {
       /* C = A >> shiftBits */
       /* Read 4 inputs */
-      in1 = *pSrc++;
-      in2 = *pSrc++;
-      in3 = *pSrc++;
-      in4 = *pSrc++;
+      in1 = *pSrc;
+      in2 = *(pSrc + 1);
+      in3 = *(pSrc + 2);
+      in4 = *(pSrc + 3);
 
       /* Store the Shifted result in the destination buffer in single cycle by packing the outputs */
-      *__SIMD32(pDst)++ = __PACKq7((in1 >> -shiftBits), (in2 >> -shiftBits),
-                                   (in3 >> -shiftBits), (in4 >> -shiftBits));
+      *__SIMD32(pDst)++ = __PACKq7((in1 >> shiftBits), (in2 >> shiftBits),
+                                   (in3 >> shiftBits), (in4 >> shiftBits));
+
+
+      pSrc += 4u;
 
       /* Decrement the loop counter */
       blkCnt--;
     }
 
-    /* If the blockSize is not a multiple of 4, compute any remaining output samples here.   
+    /* If the blockSize is not a multiple of 4, compute any remaining output samples here.    
      ** No loop unrolling is used. */
     blkCnt = blockSize % 0x4u;
 
@@ -147,7 +160,8 @@ void arm_shift_q7(
     {
       /* C = A >> shiftBits */
       /* Shift the input and then store the result in the destination buffer. */
-      *pDst++ = (*pSrc++ >> -shiftBits);
+      in1 = *pSrc++;
+      *pDst++ = (in1 >> shiftBits);
 
       /* Decrement the loop counter */
       blkCnt--;
@@ -194,9 +208,8 @@ void arm_shift_q7(
   }
 
 #endif /* #ifndef ARM_MATH_CM0 */
-
 }
 
-/**   
- * @} end of shift group   
+/**        
+ * @} end of shift group        
  */

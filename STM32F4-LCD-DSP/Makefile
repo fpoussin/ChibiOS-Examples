@@ -72,7 +72,6 @@ include $(CHIBIOS)/os/kernel/kernel.mk
 include $(CHIBIOS)/test/test.mk
 include $(CHIBIOS)/ext/gfx/gfx.mk
 include $(CHIBIOS)/ext/gfx/drivers/gdisp/SSD1963/gdisp_lld.mk
-include dsp_lib/dsp.mk
 
 # Define linker script file here
 #LDSCRIPT= $(PORTLD)/STM32F407xG.ld
@@ -88,7 +87,6 @@ CSRC = $(PORTSRC) \
        $(BOARDSRC) \
        $(GFXSRC) \
        $(CHIBIOS)/os/various/chprintf.c \
-       $(DSPSRC) \
        main.c arm_fft_bin_data.c uitoa.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
@@ -201,10 +199,10 @@ UADEFS =
 UINCDIR =
 
 # List the user directory to look for the libraries here
-ULIBDIR =
+ULIBDIR = dsp_lib
 
 # List all user libraries here
-ULIBS = -lm
+ULIBS = -lm -larm_cortexM4lf_math
 
 #
 # End of user defines
