@@ -91,7 +91,7 @@ CSRC = $(PORTSRC) \
        main.c arm_fft_bin_data.c uitoa.c
        
 # If you want to compile the DSP library instead of using the static library file.
-#CSRC += $(DSPSRC)
+CSRC += $(DSPSRC)
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
@@ -209,7 +209,7 @@ ULIBDIR = dsp_lib
 ULIBS = -lm
 
 #if you want to use the static library file (faster compilation)
-ULIBS += -lmath_cm4f
+#ULIBS += -lmath_cm4f
 
 #
 # End of user defines

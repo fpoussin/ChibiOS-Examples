@@ -28,16 +28,21 @@
 #include "arm_math.h"
 
 #define FFT_SIZE 256 // 4096-1024-256-64-16 lengths supported by DSP library
-#define SIN_TABLE_SIZE 2048
+#define SIN_TABLE_SIZE 1024
 #define TWO_PI (M_PI * 2.0f)
 #define SAMPLING_RATE 48000
 
-int16_t phaseIncrement = 0;
-int16_t currentPhase = 0;
+#define COLOR1 HTML2COLOR(0xB00000)
+#define COLOR2 HTML2COLOR(0x0000B0)
 
-int16_t samples[SIN_TABLE_SIZE];
-int16_t input_tmp[SIN_TABLE_SIZE];
-int16_t testOutput[FFT_SIZE];
+float32_t phaseIncrement = 0.0;
+float32_t currentPhase = 0.0;
+
+float32_t magnitudeIncrement = 5.0;
+float32_t currentMagnitude = 0.0;
+
+float32_t samples[SIN_TABLE_SIZE];
+float32_t testOutput[SIN_TABLE_SIZE/2];
 extern const float32_t testInput_f32_10khz[2048];
 
 /* ------------------------------------------------------------------
@@ -73,59 +78,81 @@ static msg_t Thread2(void *arg)  {
 	char time_str[8];
 	char freq_str[8];
 
-	arm_cfft_radix4_instance_q15 S;
-	int16_t maxValue;
+	arm_cfft_radix4_instance_f32 S;
+	float32_t maxValue;
 	uint32_t maxIndex = 0;
 
+	gdispDrawBox(0, 0, width, 108, White);
+	gdispDrawBox(0, 112, width, 108, White);
+	gdispFillArea(1, 1, width-2, 106, COLOR1);
+	gdispFillArea(1, 113, width-2, 106, COLOR2);
+
+	gdispDrawString(0, height-48, "FFT+MAG Processing time in us", font1, White);
+	gdispDrawString(0, height-24, "Peak freq in HZ", font1, White);
+
 	/* Initialize the CFFT/CIFFT module */
-	arm_cfft_radix4_init_q15(&S, FFT_SIZE, ifftFlag, doBitReverse);
+	arm_cfft_radix4_init_f32(&S, FFT_SIZE, ifftFlag, doBitReverse);
 
 	while (TRUE) {
 
-		int i;
+		gdispFillArea(1, 1, width-2, 106, COLOR1);
+		gdispFillArea(1, 113, width-2, 106, COLOR2);
 
-		phaseIncrement += 500;
-		if (phaseIncrement > 30000) phaseIncrement = 0;
+		int32_t i;
+		float32_t s;
+
+		//currentMagnitude += magnitudeIncrement;
+		currentMagnitude = 50.0;
+		phaseIncrement += 0.05;
 		currentPhase = 0.0;
 		for (i=0 ; i < SIN_TABLE_SIZE/2 ; i++)
 		{
-			samples[i*2] = arm_sin_q15(currentPhase += phaseIncrement);
+			samples[i*2] = currentMagnitude*arm_sin_f32(currentPhase += phaseIncrement);
 			samples[(i*2)+1] = 0;
 		}
 
+		// Need to draw first graph (Sine wave) before running FFT as it changes the sample data.
+		for (i=0 ; i < SIN_TABLE_SIZE/2 && i < width-2 ; i++) // Sine wave graph
+		{
+			s = samples[i*2];
+			if (s > 52.0) s = 52.0;
+			else if (s < -52.0) s = -52.0;
+			gdispDrawPixel(2+i, 54-s, White);
+		}
+		gdispDrawLine(1, 54, width-2, 54, Grey);
+
 		//arm_float_to_q15((float32_t*)testInput_f32_10khz, samples, SIN_TABLE_SIZE);
 
-		gdispClear(Blue);
+		//arm_copy_f32(testInput_f32_10khz, samples, 2048);
 		memset(testOutput, 0, FFT_SIZE);
 
 		cnt = halGetCounterValue();
 		/* Process the data through the CFFT/CIFFT module */
-		arm_cfft_radix4_q15(&S, samples);
+		arm_cfft_radix4_f32(&S, samples);
 
 		/* Process the data through the Complex Magnitude Module for
 		calculating the magnitude at each bin */
-		arm_cmplx_mag_q15(samples, testOutput, FFT_SIZE/2); // We only care about the first half
+		arm_cmplx_mag_f32(samples, testOutput, FFT_SIZE/2); // We only care about the first half
 
 		cnt = halGetCounterValue() - cnt;
 		us = cnt / 168; // 168mhz = 168 instructions per us
 		uitoa(us, time_str, sizeof(time_str));
 		/* Calculates maxValue and returns corresponding BIN value */
-		arm_max_q15(testOutput, FFT_SIZE/2, &maxValue, &maxIndex); // We only care about the first half
+		arm_max_f32(testOutput, FFT_SIZE/2, &maxValue, &maxIndex); // We only care about the first half
 
 		uitoa((SAMPLING_RATE*maxIndex)/FFT_SIZE, freq_str, sizeof(freq_str));
 
-		uint16_t s;
-		for (i=1 ; i < FFT_SIZE/2 && i < width ; i++) // We only display the first half as the rest is useless.
+		// Second graph (FFT)
+		for (i=1 ; i < FFT_SIZE/2 && i < width-2 ; i++) // We only display the first half as the rest is useless.
 		{
-			s = testOutput[i] >> 4;
-			gdispFillArea(i*4, height-s, 4, s, White);
+			s = testOutput[i] / 16;
+			if (s > 106.0) s = 106.0;
+			gdispFillArea(i*4, 220-s, 4, s, White);
 		}
 
-		gdispDrawString(0, 0, "FFT+MAG Processing time in us", font1, White);
-		gdispDrawString(width-gdispGetStringWidth(time_str, font1)-3, 0, time_str, font1, White);
-
-		gdispDrawString(0, 24, "Peak freq in HZ", font1, White);
-		gdispDrawString(width-gdispGetStringWidth(freq_str, font1)-3, 24, freq_str, font1, White);
+		gdispFillArea(width-80, height-48, 80, 48, Black);
+		gdispDrawString(width-gdispGetStringWidth(time_str, font1)-3, height-48, time_str, font1, White);
+		gdispDrawString(width-gdispGetStringWidth(freq_str, font1)-3, height-24, freq_str, font1, White);
 
 		chThdSleepMilliseconds(50);
 	}
