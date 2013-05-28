@@ -154,7 +154,7 @@ static msg_t Thread2(void *arg)  {
 		// Second graph (FFT)
 		for (i=0 ; i < FFT_SIZE/2 && i < width-2 ; i++) // We only display the first half as the rest is useless.
 		{
-			s = testOutput[i+16] / 16;
+			s = testOutput[i+16] / (maxValue/106);
 			if (s > 106.0) s = 106.0;
 			gdispFillArea(i, 220-s, 1, s, White);
 		}
