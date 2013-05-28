@@ -38,7 +38,7 @@
 float32_t phaseIncrement = 0.0;
 float32_t currentPhase = 0.0;
 
-float32_t magnitudeIncrement = 5.0;
+float32_t magnitudeIncrement = 0.25;
 float32_t currentMagnitude = 0.0;
 
 q15_t samples[SIN_TABLE_SIZE];
@@ -84,8 +84,6 @@ static msg_t Thread2(void *arg)  {
 
 	gdispDrawBox(0, 0, width, 108, White);
 	gdispDrawBox(0, 112, width, 108, White);
-	gdispFillArea(1, 1, width-2, 106, COLOR1);
-	gdispFillArea(1, 113, width-2, 106, COLOR2);
 
 	gdispDrawString(0, height-48, "FFT+MAG Processing time in us", font1, White);
 	gdispDrawString(0, height-24, "Peak Frequency in Hz", font1, White);
@@ -100,11 +98,12 @@ static msg_t Thread2(void *arg)  {
 
 		int32_t i, s;
 
-		//currentMagnitude += magnitudeIncrement;
-		currentMagnitude = 50.0;
+		currentMagnitude += magnitudeIncrement;
+		//currentMagnitude = 50.0;
 		phaseIncrement += 0.05;
 		//phaseIncrement = TWO_PI/(SAMPLING_RATE/4800.0); // Last number is desired frequency
 		if (phaseIncrement >= M_PI) phaseIncrement = -M_PI;
+		if (currentMagnitude >= 1.0) currentMagnitude = -1.0;
 		currentPhase = 0.0;
 		for (i=0 ; i < SIN_TABLE_SIZE ; i+=4) // Unroll loops
 		{
@@ -115,10 +114,10 @@ static msg_t Thread2(void *arg)  {
 		}
 		for (i=0 ; i < FFT_SIZE ; i+=4)
 		{
-			samples[i*2] = 32768.0*arm_sin_f32(currentPhase += phaseIncrement); // Float to Q15
-			samples[(i*2)+2] = 32768.0*arm_sin_f32(currentPhase += phaseIncrement); // Float to Q15
-			samples[(i*2)+4] = 32768.0*arm_sin_f32(currentPhase += phaseIncrement); // Float to Q15
-			samples[(i*2)+6] = 32768.0*arm_sin_f32(currentPhase += phaseIncrement); // Float to Q15
+			samples[i*2] = currentMagnitude*32768.0*arm_sin_f32(currentPhase += phaseIncrement); // Float to Q15
+			samples[(i*2)+2] = currentMagnitude*32768.0*arm_sin_f32(currentPhase += phaseIncrement); // Float to Q15
+			samples[(i*2)+4] = currentMagnitude*32768.0*arm_sin_f32(currentPhase += phaseIncrement); // Float to Q15
+			samples[(i*2)+6] = currentMagnitude*32768.0*arm_sin_f32(currentPhase += phaseIncrement); // Float to Q15
 		}
 
 		// Need to draw first graph (Sine wave) before running FFT as it changes the sample data.
