@@ -152,9 +152,9 @@ static msg_t Thread2(void *arg)  {
 		uitoa((SAMPLING_RATE*maxIndex)/FFT_SIZE, freq_str, sizeof(freq_str));
 
 		// Second graph (FFT)
-		for (i=1 ; i < FFT_SIZE/2 && i < width-2 ; i++) // We only display the first half as the rest is useless.
+		for (i=0 ; i < FFT_SIZE/2 && i < width-2 ; i++) // We only display the first half as the rest is useless.
 		{
-			s = testOutput[i] / 16;
+			s = testOutput[i+16] / 16;
 			if (s > 106.0) s = 106.0;
 			gdispFillArea(i, 220-s, 1, s, White);
 		}
