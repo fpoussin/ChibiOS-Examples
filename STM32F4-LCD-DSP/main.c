@@ -127,7 +127,8 @@ static msg_t Thread2(void *arg)  {
 			s = (samples[i*2] / (32768/52)); // Q15 to int, then scaled to 32768 = 52px
 			if (s > 52.0) s = 52.0;
 			else if (s < -52.0) s = -52.0;
-			gdispDrawPixel(1+i, 54-s, White);
+			gdispDrawLine(1+i, 54-s, 1+i, 54,  White);
+			gdispDrawLine(1+i, 54-s, 1+i, 54,  White);
 		}
 		gdispDrawLine(1, 54, width-2, 54, Grey);
 
