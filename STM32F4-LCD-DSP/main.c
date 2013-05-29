@@ -111,7 +111,7 @@ static void daccb(DACDriver *dacp) {
  * DAC config, with a callback.
  */
 static const DACConfig daccfg = {
-  4800*DAC_TABLE_SIZE,
+  4800*DAC_TABLE_SIZE, // Multiply the buffer size to the desired frequency in Hz
   daccb,
   DAC_DHRM_12BIT_RIGHT,
   (STM32_DAC_CR_BOFF_ENABLE |STM32_DAC_CR_WAVE_NONE | \
@@ -151,7 +151,7 @@ static msg_t Thread2(void *arg)  {
 	palSetPad(GPIOC, GPIOC_PIN6);
 	chThdSleepMilliseconds(10);
 
-	gdispInit();
+	gfxInit();
 	gdispClear(Black);
 
 	const uint16_t width = gdispGetWidth();
