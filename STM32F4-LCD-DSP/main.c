@@ -31,7 +31,7 @@
 #define SIN_TABLE_SIZE (FFT_SIZE*2)
 #define DAC_TABLE_SIZE 360
 #define TWO_PI (M_PI * 2.0f)
-#define SAMPLING_RATE 109000.0
+#define SAMPLING_RATE 67300.0
 
 #define COLOR1 HTML2COLOR(0xB00000)
 #define COLOR2 HTML2COLOR(0x0000B0)
@@ -86,27 +86,31 @@ static void daccb(DACDriver *dacp) {
   palTogglePad(GPIOD, GPIOD_LED3); // Orange
 }
 
+/*
+ * Turn on the red LED if there are DMA errors.
+ */
 static void dacerrcb(DACDriver *dacp) {
   (void)dacp;
   palTogglePad(GPIOD, GPIOD_LED4); // Red
 }
 
 /*
- * DAC config, with a callback.
+ * DAC config, with callbacks.
  */
 static const DACConfig daccfg1 = {
-  4800*DAC_TABLE_SIZE, // Multiply the buffer size to the desired frequency in Hz
-  daccb,
-  dacerrcb,
-  DAC_DHRM_12BIT_RIGHT,
-  (STM32_DAC_CR_BOFF_ENABLE |STM32_DAC_CR_WAVE_NONE | STM32_DAC_MAMP_1)
+  960*DAC_TABLE_SIZE, /* Multiply the buffer size to the desired frequency in Hz */
+  daccb, /* End of transfer callback */
+  dacerrcb, /* Error callback */
+  DAC_DHRM_12BIT_RIGHT, /* data holding register mode */
+  0 /* CR flags */
 };
+
 static const DACConfig daccfg2 = {
-  10000*DAC_TABLE_SIZE, // Multiply the buffer size to the desired frequency in Hz
-  daccb,
-  dacerrcb,
-  DAC_DHRM_12BIT_RIGHT,
-  (STM32_DAC_CR_BOFF_ENABLE |STM32_DAC_CR_WAVE_NONE | STM32_DAC_MAMP_1)
+  4800*DAC_TABLE_SIZE, /* Multiply the buffer size to the desired frequency in Hz */
+  daccb, /* End of transfer callback */
+  dacerrcb, /* Error callback */
+  DAC_DHRM_12BIT_RIGHT, /* data holding register mode */
+  0 /* CR flags */
 };
 
 /*
@@ -121,7 +125,7 @@ static const ADCConversionGroup adcgrpcfg1 = {
   NULL,
   0,                        /* CR1 */
   ADC_CR2_SWSTART | ADC_CR2_ALIGN,          /* CR2 */ // Align results to left
-  ADC_SMPR1_SMP_AN11(ADC_SAMPLE_84), // ADCCLK = 84/8 = 10.5Mhz. Sampling time 10.5/(84+12) = 109KHz
+  ADC_SMPR1_SMP_AN11(ADC_SAMPLE_144), // ADCCLK = 84/8 = 10.5Mhz. Sampling time 10.5/(144+12) = 67KHz
   0,                        /* SMPR2 */
   ADC_SQR1_NUM_CH(ADC_GRP1_NUM_CHANNELS),
   0,
