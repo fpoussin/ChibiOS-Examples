@@ -77,47 +77,37 @@ const uint16_t dac_buffer[DAC_TABLE_SIZE] = {2047, 2082, 2118, 2154, 2189, 2225,
 		1215, 1248, 1281, 1314, 1347, 1381, 1415, 1449, 1483, 1518, 1552, 1587, 1622,
 		1657, 1692, 1727, 1763, 1798, 1834, 1869, 1905, 1940, 1976, 2012};
 
-/*
- * ADC streaming callback.
- */
-size_t nx = 0, ny = 0;
-static void adccallback(ADCDriver *adcp, adcsample_t *buffer, size_t n) {
-
-  (void)adcp;
-  if (ADCSamples == buffer) {
-    nx += n;
-  }
-  else {
-    ny += n;
-  }
-  palTogglePad(GPIOD, GPIOD_LED4);
-}
-
-static void adcerrorcallback(ADCDriver *adcp, adcerror_t err) {
-
-  (void)adcp;
-  (void)err;
-}
 
 /*
- * Turn on the red LED once DMA ends the transmission.
+ * Turn on the orange LED once DMA ends the transmission.
  */
 static void daccb(DACDriver *dacp) {
   (void)dacp;
-  palTogglePad(GPIOD, GPIOD_LED3);
+  palTogglePad(GPIOD, GPIOD_LED3); // Orange
+}
+
+static void dacerrcb(DACDriver *dacp) {
+  (void)dacp;
+  palTogglePad(GPIOD, GPIOD_LED4); // Red
 }
 
 /*
  * DAC config, with a callback.
  */
-static const DACConfig daccfg = {
+static const DACConfig daccfg1 = {
   4800*DAC_TABLE_SIZE, // Multiply the buffer size to the desired frequency in Hz
   daccb,
+  dacerrcb,
   DAC_DHRM_12BIT_RIGHT,
-  (STM32_DAC_CR_BOFF_ENABLE |STM32_DAC_CR_WAVE_NONE | \
-  STM32_DAC_CR_TSEL_TIM6 | STM32_DAC_MAMP_1)
+  (STM32_DAC_CR_BOFF_ENABLE |STM32_DAC_CR_WAVE_NONE | STM32_DAC_MAMP_1)
 };
-
+static const DACConfig daccfg2 = {
+  10000*DAC_TABLE_SIZE, // Multiply the buffer size to the desired frequency in Hz
+  daccb,
+  dacerrcb,
+  DAC_DHRM_12BIT_RIGHT,
+  (STM32_DAC_CR_BOFF_ENABLE |STM32_DAC_CR_WAVE_NONE | STM32_DAC_MAMP_1)
+};
 
 /*
  * ADC conversion group.
@@ -127,8 +117,8 @@ static const DACConfig daccfg = {
 static const ADCConversionGroup adcgrpcfg1 = {
   TRUE,
   ADC_GRP1_NUM_CHANNELS,
-  adccallback,
-  adcerrorcallback,
+  NULL,
+  NULL,
   0,                        /* CR1 */
   ADC_CR2_SWSTART | ADC_CR2_ALIGN,          /* CR2 */ // Align results to left
   ADC_SMPR1_SMP_AN11(ADC_SAMPLE_84), // ADCCLK = 84/8 = 10.5Mhz. Sampling time 10.5/(84+12) = 109KHz
@@ -171,11 +161,10 @@ static msg_t Thread2(void *arg)  {
 	arm_cfft_radix4_instance_q15 S;
 	q15_t maxValue = 0;
 	uint32_t maxIndex = 0;
-	float32_t phaseIncrement = 0.0;
+	/*float32_t phaseIncrement = 0.0;
 	float32_t currentPhase = 0.0;
 	float32_t magnitudeIncrement = 0.25;
-	float32_t currentMagnitude = 0.0;
-
+	float32_t currentMagnitude = 0.0;*/
 
 	gdispDrawBox(0, 0, width, 108, White);
 	gdispDrawBox(0, 112, width, 108, White);
@@ -311,10 +300,12 @@ int main(void) {
    */
   palSetPadMode(GPIOA, 4, PAL_MODE_INPUT_ANALOG); /* Manual says it prevents parasitic consumption,
                                                   the mode is ignored when the DAC_CR_ENx is activated */
+  palSetPadMode(GPIOA, 5, PAL_MODE_INPUT_ANALOG);
   /*
    * Starting the DAC driver threads.
    */
-  dacStart(&DACD1, &daccfg);
+  dacStart(&DACD1, &daccfg1);
+  dacStart(&DACD2, &daccfg2);
 
   /*
    * Activates the ADC1 driver and the temperature sensor.
@@ -326,6 +317,7 @@ int main(void) {
    * Sending the dac_buffer
    */
   dacStartSendCircular(&DACD1, DAC_TABLE_SIZE, dac_buffer);
+  dacStartSendCircular(&DACD2, DAC_TABLE_SIZE, dac_buffer);
 
   /*
    * Starts an ADC continuous conversion.
