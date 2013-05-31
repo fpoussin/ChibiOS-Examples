@@ -49,7 +49,7 @@
 
 /* GFX sub-systems to turn on */
 #define GFX_USE_GDISP			TRUE
-#define GFX_USE_GWIN			TRUE
+#define GFX_USE_GWIN			FALSE
 #define GFX_USE_GEVENT			FALSE
 #define GFX_USE_GTIMER			FALSE
 #define GFX_USE_GINPUT			FALSE
@@ -69,8 +69,8 @@
 #define GDISP_NEED_MSGAPI		FALSE
 
 /* Features for the GWIN sub-system. */
-#define GWIN_NEED_GRAPH		TRUE
-#define GWIN_NEED_CONSOLE		TRUE
+#define GWIN_NEED_GRAPH		FALSE
+#define GWIN_NEED_CONSOLE		FALSE
 
 /* Builtin Fonts */
 #define GDISP_INCLUDE_FONT_SMALL			FALSE

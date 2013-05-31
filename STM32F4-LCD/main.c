@@ -83,7 +83,6 @@ static msg_t Thread2(void *arg)  {
   chThdSleepMilliseconds(10);
   palSetPad(GPIOC, GPIOC_PIN6);
   chThdSleepMilliseconds(10);
-  GHandle GW1;
 	gdispInit();
 	gdispClear(Black);
 
@@ -101,10 +100,6 @@ static msg_t Thread2(void *arg)  {
 
 	while (TRUE) {
 
-	GW1 = gwinCreateConsole(NULL, 0, 0, gdispGetWidth(), gdispGetHeight()/2, font1);
-	gwinSetColor(GW1, Green);
-	gwinSetBgColor(GW1, Black);
-
 	  gdispFillArea(10, 10, width-20, height-20, Grey);
 	  gdispFillArea(30, 30, 300, 150, Red);
 	  gdispFillArea(50, 50, 200, 100, Blue);
@@ -115,78 +110,6 @@ static msg_t Thread2(void *arg)  {
 	  gdispDrawString(width-gdispGetStringWidth(msg, font1)-3, height-24, msg, font1, White);
 
 	  chThdSleepMilliseconds(2000);
-/*
-	  gdispClear(Black);
-	    Graph G1 = {
-	    	width/2,
-	    	height/2,
-	        -225,
-	        225,
-	        -130,
-	        130,
-	        20,
-	        5,
-	        TRUE,
-	        TRUE,
-	        White,
-	        Grey,
-	    };
-
-	    graphDrawSystem(&G1);
-
-	    uint16_t i;
-	    for(i = 0; i < 2500; i++)
-	        graphDrawDot(&G1, i-(width/2), 80*sin(2*0.2*M_PI*i/180), 1, Blue);
-
-	    for(i = 0; i < 2500; i++)
-	        graphDrawDot(&G1, i/5-(width/2), 95*sin(2*0.2*M_PI*i/180), 1, Green);
-
-	    chThdSleepMilliseconds(1500);
-
-		  gdispClear(Black);
-		    Graph G2 = {
-		    	100,
-		    	100,
-		        -100,
-		        100,
-		        -100,
-		        100,
-		        20,
-		        5,
-		        FALSE,
-		        TRUE,
-		        White,
-		        Grey,
-		    };
-
-		    Graph G3 = {
-		    	width-100,
-		    	height-100,
-		        -100,
-		        100,
-		        -100,
-		        100,
-		        20,
-		        5,
-		        TRUE,
-		        FALSE,
-		        White,
-		        Grey,
-		    };
-
-		    graphDrawSystem(&G2);
-		    graphDrawSystem(&G3);
-
-		    for(i = 0; i < 2500; i++) {
-		        graphDrawDot(&G2, i-(width/5), 80*sin(2*0.2*M_PI*i/180), 1, Blue);
-		        graphDrawDot(&G3, i-(width/5), 80*sin(2*0.2*M_PI*i/180), 1, Blue);
-		    }
-		    for(i = 0; i < 2500; i++) {
-		        graphDrawDot(&G2, i/5-(width/5), 95*sin(2*0.2*M_PI*i/180), 1, Green);
-		        graphDrawDot(&G3, i/5-(width/5), 95*sin(2*0.2*M_PI*i/180), 1, Green);
-		    }
-		    chThdSleepMilliseconds(2000);
-*/
 	  pixels = 0;
 	  gdispClear(Black);
 	  gdispDrawString(60, height/2, "Doing 5000 random rectangles", font1, White);
