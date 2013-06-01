@@ -29,7 +29,7 @@
 
 #define FFT_SIZE 1024 // 4096-1024-256-64-16 lengths supported by DSP library
 #define SIN_TABLE_SIZE (FFT_SIZE*2)
-#define DAC_TABLE_SIZE 360
+#define DAC_BUFFER_SIZE 360
 #define TWO_PI (M_PI * 2.0f)
 #define SAMPLING_RATE 67300.0
 
@@ -50,7 +50,7 @@ int uitoa(unsigned int value, char * buf, int max);
 /*
  * DAC test buffer (sine wave)
  */
-const uint16_t dac_buffer[DAC_TABLE_SIZE] = {2047, 2082, 2118, 2154, 2189, 2225, 2260,
+const uint16_t dac_buffer[DAC_BUFFER_SIZE] = {2047, 2082, 2118, 2154, 2189, 2225, 2260,
 		2296, 2331, 2367, 2402, 2437, 2472, 2507, 2542, 2576, 2611, 2645, 2679, 2713,
 		2747, 2780, 2813, 2846, 2879, 2912, 2944, 2976, 3008, 3039, 3070, 3101, 3131,
 		3161, 3191, 3221, 3250, 3278, 3307, 3335, 3362, 3389, 3416, 3443, 3468, 3494,
@@ -98,17 +98,27 @@ static void dacerrcb(DACDriver *dacp) {
  * DAC config, with callbacks.
  */
 static const DACConfig daccfg1 = {
-  960*DAC_TABLE_SIZE, /* Multiply the buffer size to the desired frequency in Hz */
+  DAC_MODE_CONTINUOUS,
+  960*DAC_BUFFER_SIZE, /* Multiply the buffer size to the desired frequency in Hz */
+  dac_buffer, /* Pointer to the first buffer */
+  NULL, /* Pointer to the second buffer */
+  DAC_BUFFER_SIZE, /* Buffers size */
   daccb, /* End of transfer callback */
   dacerrcb, /* Error callback */
+  /* STM32 specific config starts here */
   DAC_DHRM_12BIT_RIGHT, /* data holding register mode */
   0 /* CR flags */
 };
 
 static const DACConfig daccfg2 = {
-  4800*DAC_TABLE_SIZE, /* Multiply the buffer size to the desired frequency in Hz */
+  DAC_MODE_CONTINUOUS,
+  4800*DAC_BUFFER_SIZE, /* Multiply the buffer size to the desired frequency in Hz */
+  dac_buffer, /* Pointer to the first buffer */
+  NULL, /* Pointer to the second buffer */
+  DAC_BUFFER_SIZE, /* Buffers size */
   daccb, /* End of transfer callback */
   dacerrcb, /* Error callback */
+  /* STM32 specific config starts here */
   DAC_DHRM_12BIT_RIGHT, /* data holding register mode */
   0 /* CR flags */
 };
@@ -320,8 +330,8 @@ int main(void) {
   /*
    * Sending the dac_buffer
    */
-  dacStartSendCircular(&DACD1, DAC_TABLE_SIZE, dac_buffer);
-  dacStartSendCircular(&DACD2, DAC_TABLE_SIZE, dac_buffer);
+  dacStartSend(&DACD1);
+  dacStartSend(&DACD2);
 
   /*
    * Starts an ADC continuous conversion.
