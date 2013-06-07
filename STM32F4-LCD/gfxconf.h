@@ -53,6 +53,7 @@
 #define GFX_USE_GEVENT			FALSE
 #define GFX_USE_GTIMER			FALSE
 #define GFX_USE_GINPUT			FALSE
+#define GFX_USE_FREETYPE TRUE
 
 /* Features for the GDISP sub-system. */
 #define GDISP_NEED_VALIDATION	TRUE
