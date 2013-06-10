@@ -1,1 +1,6 @@
-D:/src/ChibiOS-Examples/Win32-FreeType
+.
+../../chibios/ext/gfx/include
+../../chibios/ext/gfx/include/gft/freetype
+../../chibios/os/hal/include
+../../chibios/os/kernel/include
+../../chibios/os/various
