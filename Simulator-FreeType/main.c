@@ -87,13 +87,13 @@ static msg_t Thread2(void *arg)  {
   ftfont_t ubuntu = gftOpenFont("Ubuntu mono");
   const char *msg = "ChibiOS/GFX with FreeType";
 
-  gftSetFontSize(ubuntu, 16);
+  //gftSetFontSize(ubuntu, 16);
 
   while (TRUE) {
 
     gdispClear(Black);
 
-    gftDrawString(0, 0, msg, ubuntu, White);
+    //gftDrawString(0, 0, msg, ubuntu, White);
 
     chThdSleepMilliseconds(1000);
 

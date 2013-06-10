@@ -2,4 +2,5 @@ chconf.h
 gfxconf.h
 halconf.h
 main.c
-Makefile
+Makefile.win32
+Makefile.linux
