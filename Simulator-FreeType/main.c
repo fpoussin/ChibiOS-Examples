@@ -70,7 +70,7 @@ int uitoa(unsigned int value, char * buf, int max) {
   return n;
 }
 
-static WORKING_AREA(waThread2, 2048);
+static WORKING_AREA(waThread2, 4096);
 __attribute__ ((__noreturn__))
 static msg_t Thread2(void *arg)  {
 
@@ -93,7 +93,7 @@ static msg_t Thread2(void *arg)  {
 
     gdispClear(Black);
 
-    gftDrawString(0, 0, msg, ubuntu, White);
+    gftDrawString(100, 100, msg, ubuntu, White);
 
     chThdSleepMilliseconds(1000);
 

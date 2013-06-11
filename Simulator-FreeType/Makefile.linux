@@ -91,10 +91,10 @@ UINCDIR = $(PORTINC) $(KERNINC) $(TESTINC) \
 ULIBDIR =
 
 # List all user libraries here
-ULIBS = -lX11
+ULIBS = -lX11 -lfreetype
 
 # Define optimisation level here
-OPT = -m32 -ggdb -O2 -fomit-frame-pointer
+OPT = -m32 -ggdb -O0 -fomit-frame-pointer
 
 #
 # End of user defines
