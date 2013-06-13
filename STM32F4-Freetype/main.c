@@ -27,6 +27,14 @@
 #include "math.h"
 #include "stdio.h"
 
+// syscall Stub
+int _open(const char *name, int flags, int mode) { 
+(void )name;
+(void)flags;
+(void)mode;
+return -1;
+}
+
 static WORKING_AREA(waThread2, 4096);
 __attribute__ ((__noreturn__))
 static msg_t Thread2(void *arg)  {

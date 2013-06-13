@@ -1,0 +1,5 @@
+.
+../../chibios/ext/gfx/include
+../../chibios/os/hal/include
+../../chibios/os/kernel/include
+../../chibios/os/various
