@@ -45,20 +45,20 @@ static msg_t Thread2(void *arg)  {
   if (ubuntu == NULL) fprintf(stderr, "Failed to find font\n");
   const char *msg = "ChibiOS/GFX with FreeType";
 
+  unsigned char s = 8;
   while (TRUE) {
+      if (s > 30) s = 8;
 
     gdispClear(Black);
 
-    gftSetFontSize(ubuntu, 25);
-    gftDrawString(100, 100, msg, ubuntu, SkyBlue);
+    gftSetFontSize(ubuntu, 16);
+    gftDrawString(100, 100, msg, ubuntu, White);
+
+    gftSetFontSize(ubuntu, 30);
+    gftDrawString(100, 200, msg, ubuntu, White);
 
     chThdSleepMilliseconds(1000);
-
-    gdispClear(White);
-    //gftSetFontSize(ubuntu, 10);
-    gftDrawString(100, 100, msg, ubuntu, Red);
-
-    chThdSleepMilliseconds(1000);
+    s+=4;
   }
 }
 
