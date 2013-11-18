@@ -21,6 +21,7 @@
 
 /*
  * DAC test buffer (sine wave)
+ * Real buffer needs to have both left and right data after each other (left right left right, etc) in 32b sequences (16 per channel)
  */
 const uint16_t dac_buffer[DAC_BUFFER_SIZE] = {2047, 2082, 2118, 2154, 2189, 2225, 2260,
 		2296, 2331, 2367, 2402, 2437, 2472, 2507, 2542, 2576, 2611, 2645, 2679, 2713,
@@ -63,14 +64,14 @@ static void daccb(DACDriver *dacp, const dacsample_t * samples, uint16_t pos) {
 	if (pos == sizeof(dac_buffer)-1)
 	{
 	  /* Copy stuff to the first half of each buffer */
-	  dmaStartMemCopy(STM32_DMA2_STREAM6, STM32_DMA_CR_PL(0) | STM32_DMA_CR_PSIZE_WORD | STM32_DMA_CR_MSIZE_WORD,
+	  dmaStartMemCopy(STM32_DMA2_STREAM7, STM32_DMA_CR_PL(0) | STM32_DMA_CR_PSIZE_WORD | STM32_DMA_CR_MSIZE_WORD,
 	    dac_buffer, dac_buffer_lr, sizeof(dac_buffer));
 	}
 	/* Full transfer */
 	else if (pos == (sizeof(dac_buffer)*2)-1)
 	{
 	/* Copy stuff to the second half of each buffer */
-	  dmaStartMemCopy(STM32_DMA2_STREAM6, STM32_DMA_CR_PL(0) | STM32_DMA_CR_PSIZE_WORD | STM32_DMA_CR_MSIZE_WORD,
+	  dmaStartMemCopy(STM32_DMA2_STREAM7, STM32_DMA_CR_PL(0) | STM32_DMA_CR_PSIZE_WORD | STM32_DMA_CR_MSIZE_WORD,
 	    dac_buffer, dac_buffer_lr+(sizeof(dac_buffer)), sizeof(dac_buffer));
 	}
 }
@@ -148,6 +149,7 @@ int main(void) {
    * Starting the DAC driver.
    */
   dacStart(&DACD1, &daccfg);
+  dacStart(&DACD2, &daccfg);
   
   /* Allocating two DMA2 streams for memory copy operations.*/
   if (dmaStreamAllocate(STM32_DMA2_STREAM7, 0, NULL, NULL))
