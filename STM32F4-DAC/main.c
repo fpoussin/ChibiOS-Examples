@@ -49,8 +49,7 @@ const uint16_t dac_buffer[DAC_BUFFER_SIZE] = {2047, 2082, 2118, 2154, 2189, 2225
 		1215, 1248, 1281, 1314, 1347, 1381, 1415, 1449, 1483, 1518, 1552, 1587, 1622,
 		1657, 1692, 1727, 1763, 1798, 1834, 1869, 1905, 1940, 1976, 2012};
 		
-uint16_t dac_buffer_l[DAC_BUFFER_SIZE*2];
-uint16_t dac_buffer_r[DAC_BUFFER_SIZE*2];
+uint16_t dac_buffer_lr[DAC_BUFFER_SIZE*2];
 
 /*
  * Turn on the orange LED once DMA ends the transmission.
@@ -65,20 +64,14 @@ static void daccb(DACDriver *dacp, const dacsample_t * samples, uint16_t pos) {
 	{
 	  /* Copy stuff to the first half of each buffer */
 	  dmaStartMemCopy(STM32_DMA2_STREAM6, STM32_DMA_CR_PL(0) | STM32_DMA_CR_PSIZE_WORD | STM32_DMA_CR_MSIZE_WORD,
-	    dac_buffer, dac_buffer_l, sizeof(dac_buffer));
-		
-	  dmaStartMemCopy(STM32_DMA2_STREAM7, STM32_DMA_CR_PL(0) | STM32_DMA_CR_PSIZE_WORD | STM32_DMA_CR_MSIZE_WORD,
-	    dac_buffer, dac_buffer_r, sizeof(dac_buffer));
+	    dac_buffer, dac_buffer_lr, sizeof(dac_buffer));
 	}
 	/* Full transfer */
 	else if (pos == (sizeof(dac_buffer)*2)-1)
 	{
 	/* Copy stuff to the second half of each buffer */
 	  dmaStartMemCopy(STM32_DMA2_STREAM6, STM32_DMA_CR_PL(0) | STM32_DMA_CR_PSIZE_WORD | STM32_DMA_CR_MSIZE_WORD,
-	    dac_buffer, dac_buffer_l+(sizeof(dac_buffer)), sizeof(dac_buffer));
-		
-	  dmaStartMemCopy(STM32_DMA2_STREAM7, STM32_DMA_CR_PL(0) | STM32_DMA_CR_PSIZE_WORD | STM32_DMA_CR_MSIZE_WORD,
-	    dac_buffer, dac_buffer_r+(sizeof(dac_buffer)), sizeof(dac_buffer));
+	    dac_buffer, dac_buffer_lr+(sizeof(dac_buffer)), sizeof(dac_buffer));
 	}
 }
 
@@ -94,20 +87,10 @@ static void dacerrcb(DACDriver *dacp, uint16_t flags) {
 /*
  * DAC conversion group, with callbacks.
  */
-static const DACConversionGroup dacconvgrp_l = {
-  1, /* Channels */
+static const DACConversionGroup dacconvgrp = {
+  2, /* Channels */
   daccb, /* End of transfer callback */
   dacerrcb, /* Error callback */
-  true /*circular mode */ 
-};
-
-/*
- * DAC conversion group, with callbacks.
- */
-static const DACConversionGroup dacconvgrp_r = {
-  1, /* Channels */
-  NULL, /* End of transfer callback */
-  NULL, /* Error callback */
   true /*circular mode */ 
 };
 
@@ -116,7 +99,7 @@ static const DACConversionGroup dacconvgrp_r = {
  */
 static const DACConfig daccfg = {
   48000, /* Multiply the buffer size to the desired frequency in Hz */
-  DAC_DHRM_12BIT_RIGHT, /* data holding register mode */
+  DAC_DHRM_12BIT_RIGHT_DUAL, /* data holding register mode */
   0 /* DAC CR flags */
 };
 
@@ -165,19 +148,15 @@ int main(void) {
    * Starting the DAC driver.
    */
   dacStart(&DACD1, &daccfg);
-  dacStart(&DACD2, &daccfg);
   
   /* Allocating two DMA2 streams for memory copy operations.*/
-  if (dmaStreamAllocate(STM32_DMA2_STREAM6, 0, NULL, NULL))
-    chSysHalt();
   if (dmaStreamAllocate(STM32_DMA2_STREAM7, 0, NULL, NULL))
     chSysHalt();
   
   /*
    * Sending the dac_buffer
    */
-  dacStartConversion(&DACD1, &dacconvgrp_l, dac_buffer_l, sizeof(dac_buffer_l));
-  dacStartConversion(&DACD2, &dacconvgrp_r, dac_buffer_r, sizeof(dac_buffer_r));
+  dacStartConversion(&DACD1, &dacconvgrp, dac_buffer_lr, sizeof(dac_buffer_lr));
 
   /*
    * Normal main() thread activity, in this demo it does nothing.
