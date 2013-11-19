@@ -55,31 +55,23 @@ uint16_t dac_buffer_lr[DAC_BUFFER_SIZE*2];
 /*
  * Turn on the orange LED once DMA ends the transmission.
  */
-static void daccb(DACDriver *dacp, const dacsample_t * samples, uint16_t pos) {
+static void daccb(DACDriver *dacp, const dacsample_t * samples, size_t pos) {
   (void)dacp;
-  (void)samples;
+  (void)pos;
   palTogglePad(GPIOD, GPIOD_LED3); // Orange
 	
-	/* Half transfer */
-	if (pos == sizeof(dac_buffer)-1)
-	{
-	  /* Copy stuff to the first half of each buffer */
-	  dmaStartMemCopy(STM32_DMA2_STREAM7, STM32_DMA_CR_PL(0) | STM32_DMA_CR_PSIZE_WORD | STM32_DMA_CR_MSIZE_WORD,
-	    dac_buffer, dac_buffer_lr, sizeof(dac_buffer));
-	}
-	/* Full transfer */
-	else if (pos == (sizeof(dac_buffer)*2)-1)
-	{
-	/* Copy stuff to the second half of each buffer */
-	  dmaStartMemCopy(STM32_DMA2_STREAM7, STM32_DMA_CR_PL(0) | STM32_DMA_CR_PSIZE_WORD | STM32_DMA_CR_MSIZE_WORD,
-	    dac_buffer, dac_buffer_lr+(sizeof(dac_buffer)), sizeof(dac_buffer));
-	}
+  /* samples is at the beginning or half of the buffer depending on which interrupt is generated
+       we can use it in both cases.	*/
+  dmaStartMemCopy(STM32_DMA2_STREAM7, 
+    STM32_DMA_CR_PL(0) | STM32_DMA_CR_PSIZE_WORD | STM32_DMA_CR_MSIZE_WORD,
+    dac_buffer, samples, sizeof(dac_buffer));
+
 }
 
 /*
  * Turn on the red LED if there are DMA errors.
  */
-static void dacerrcb(DACDriver *dacp, uint16_t flags) {
+static void dacerrcb(DACDriver *dacp, uint32_t flags) {
   (void)dacp;
   (void)flags;
   palTogglePad(GPIOD, GPIOD_LED4); // Red
