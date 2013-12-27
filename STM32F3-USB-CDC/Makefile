@@ -65,28 +65,25 @@ PROJECT = ch
 
 # Imported source files and paths
 CHIBIOS = ../../chibios
-GFXLIB = ../../ugfx
-include $(CHIBIOS)/boards/ST_STM32F4_DISCOVERY/board.mk
-include $(CHIBIOS)/os/hal/platforms/STM32F4xx/platform.mk
+include $(CHIBIOS)/boards/ST_STM32F3_DISCOVERY/board.mk
+include $(CHIBIOS)/os/hal/platforms/STM32F30x/platform.mk
 include $(CHIBIOS)/os/hal/hal.mk
-include $(CHIBIOS)/os/ports/GCC/ARMCMx/STM32F4xx/port.mk
+include $(CHIBIOS)/os/ports/GCC/ARMCMx/STM32F3xx/port.mk
 include $(CHIBIOS)/os/kernel/kernel.mk
-include $(GFXLIB)/gfx.mk
-include $(GFXLIB)/boards/base/Olimex-STM32-LCD/board.mk		# your board
+include $(CHIBIOS)/test/test.mk
 
 # Define linker script file here
-#LDSCRIPT= $(PORTLD)/STM32F407xG.ld
-LDSCRIPT= $(PORTLD)/STM32F407xG_CCM.ld
+LDSCRIPT= $(PORTLD)/STM32F303xC.ld
 
 # C sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
 CSRC = $(PORTSRC) \
        $(KERNSRC) \
+       $(TESTSRC) \
        $(HALSRC) \
        $(PLATFORMSRC) \
        $(BOARDSRC) \
-       $(GFXSRC) \
-       $(CHIBIOS)/os/various/devices_lib/accel/lis302dl.c \
+       $(CHIBIOS)/os/various/shell.c \
        $(CHIBIOS)/os/various/chprintf.c \
        main.c
 
@@ -118,8 +115,7 @@ TCPPSRC =
 ASMSRC = $(PORTASM)
 
 INCDIR = $(PORTINC) $(KERNINC) $(TESTINC) \
-         $(HALINC) $(PLATFORMINC) $(BOARDINC) $(GFXINC) \
-         $(CHIBIOS)/os/various/devices_lib/accel \
+         $(HALINC) $(PLATFORMINC) $(BOARDINC) \
          $(CHIBIOS)/os/various
 
 #
