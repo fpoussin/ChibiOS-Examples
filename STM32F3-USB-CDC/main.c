@@ -37,6 +37,18 @@
 #define USBD2_DATA_REQUEST_EP           3
 #define USBD2_DATA_AVAILABLE_EP         3
 
+
+static struct {
+  /* Input queue.*/
+  InputQueue                iqueue;
+  /* Output queue.*/
+  OutputQueue               oqueue;
+  /* Input buffer.*/
+  uint8_t                   ib[128];
+  /* Output buffer.*/
+  uint8_t                   ob[128];
+} bulkUSBData;
+
 /*
  * DP resistor control is not possible on the STM32F3-Discovery, using stubs
  * for the connection macros.
@@ -294,6 +306,79 @@ static const USBDescriptor *get_descriptor(USBDriver *usbp,
 }
 
 /**
+ * @brief   Default data transmitted callback.
+ * @details The application must use this function as callback for the IN
+ *          data endpoint.
+ *
+ * @param[in] usbp      pointer to the @p USBDriver object
+ * @param[in] ep        endpoint number
+ */
+void bulkDataTransmitted(USBDriver *usbp, usbep_t ep)
+{
+  size_t n;
+  chSysLockFromIsr();
+
+  if ((n = chOQGetFullI(&bulkUSBData.oqueue)) > 0) {
+    /* The endpoint cannot be busy, we are in the context of the callback,
+       so it is safe to transmit without a check.*/
+    chSysUnlockFromIsr();
+
+    usbPrepareQueuedTransmit(usbp, ep, &bulkUSBData.oqueue, n);
+
+    chSysLockFromIsr();
+    usbStartTransmitI(usbp, ep);
+  }
+  else if ((usbp->epc[ep]->in_state->txsize > 0) &&
+           !(usbp->epc[ep]->in_state->txsize &
+             (usbp->epc[ep]->in_maxsize - 1))) {
+    /* Transmit zero sized packet in case the last one has maximum allowed
+       size. Otherwise the recipient may expect more data coming soon and
+       not return buffered data to app. See section 5.8.3 Bulk Transfer
+       Packet Size Constraints of the USB Specification document.*/
+    chSysUnlockFromIsr();
+
+    usbPrepareQueuedTransmit(usbp, ep, &bulkUSBData.oqueue, 0);
+
+    chSysLockFromIsr();
+    usbStartTransmitI(usbp, ep);
+  }
+
+  chSysUnlockFromIsr();
+}
+
+/**
+ * @brief   Default data received callback.
+ * @details The application must use this function as callback for the OUT
+ *          data endpoint.
+ *
+ * @param[in] usbp      pointer to the @p USBDriver object
+ * @param[in] ep        endpoint number
+ */
+void bulkDataReceived(USBDriver *usbp, usbep_t ep)
+{
+  size_t n, maxsize;
+
+  chSysLockFromIsr();
+
+  /* Writes to the input queue can only happen when there is enough space
+     to hold at least one packet.*/
+  maxsize = usbp->epc[ep]->out_maxsize;
+  if ((n = chIQGetEmptyI(&bulkUSBData.iqueue)) >= maxsize) {
+    /* The endpoint cannot be busy, we are in the context of the callback,
+       so a packet is in the buffer for sure.*/
+    chSysUnlockFromIsr();
+
+    n = (n / maxsize) * maxsize;
+    usbPrepareQueuedReceive(usbp, ep, &bulkUSBData.iqueue, n);
+
+    chSysLockFromIsr();
+    usbStartReceiveI(usbp, ep);
+  }
+
+  chSysUnlockFromIsr();
+}
+
+/**
  * @brief   IN EP1 state.
  */
 static USBInEndpointState ep1instate;
@@ -335,8 +420,8 @@ static const USBEndpointConfig ep1config = {
 static const USBEndpointConfig ep3config = {
   USB_EP_MODE_TYPE_BULK,
   NULL,
-  NULL,
-  NULL,
+  bulkDataTransmitted,
+  bulkDataReceived,
   0x0040,
   0x0040,
   &ep3instate,
@@ -384,10 +469,19 @@ static void usb_event(USBDriver *usbp, usbevent_t event) {
        must be used.*/
     usbInitEndpointI(usbp, USBD1_DATA_REQUEST_EP, &ep1config);
     usbInitEndpointI(usbp, USBD1_INTERRUPT_REQUEST_EP, &ep2config);
-    usbInitEndpointI(usbp, USBD2_DATA_REQUEST_EP, &ep3config);
 
     /* Resetting the state of the CDC subsystem.*/
     sduConfigureHookI(&SDU1);
+
+    /* Bulk IF config */
+    usbInitEndpointI(usbp, USBD2_DATA_REQUEST_EP, &ep3config);
+    chIQInit(&bulkUSBData.iqueue, bulkUSBData.ib, sizeof(bulkUSBData.ib), NULL, &bulkUSBData);
+    chOQInit(&bulkUSBData.oqueue, bulkUSBData.ob, sizeof(bulkUSBData.ob), NULL, &bulkUSBData);
+
+    /* Starts the first OUT transaction immediately.*/
+    usbPrepareQueuedReceive(usbp, USBD2_DATA_REQUEST_EP, &bulkUSBData.iqueue,
+                            usbp->epc[USBD2_DATA_REQUEST_EP]->out_maxsize);
+    usbStartReceiveI(usbp, USBD2_DATA_REQUEST_EP);
 
     chSysUnlockFromIsr();
     return;
@@ -410,6 +504,7 @@ static cdc_linecoding_t linecoding = {
   LC_STOP_1, LC_PARITY_NONE, 8
 };
 
+/* Our special request hook handles RS232 flow control commands */
 static bool_t sduSpecialRequestsHook(USBDriver *usbp) {
 
   if ((usbp->setup[0] & USB_RTYPE_TYPE_MASK) == USB_RTYPE_TYPE_CLASS) {
@@ -423,7 +518,7 @@ static bool_t sduSpecialRequestsHook(USBDriver *usbp) {
       usbSetupTransfer(usbp, (uint8_t *)&linecoding, sizeof(linecoding), NULL);
       return TRUE;
     case CDC_SET_CONTROL_LINE_STATE:
-      if (usbp->setup[2] & 1) 
+      if (usbp->setup[2] & 1) /* DTR */
       {
 	     palSetPad(GPIOE, GPIOE_LED10_RED); 
       }
@@ -431,7 +526,7 @@ static bool_t sduSpecialRequestsHook(USBDriver *usbp) {
       {
 	      palClearPad(GPIOE, GPIOE_LED10_RED); 
       }
-      if (usbp->setup[2] & 2) 
+      if (usbp->setup[2] & 2) /* RTS */
       {
 	     palSetPad(GPIOE, GPIOE_LED9_BLUE); 
       }
@@ -617,10 +712,10 @@ int main(void) {
    * Note, a delay is inserted in order to not have to disconnect the cable
    * after a reset.
    */
-  usbDisconnectBus(serusbcfg.usbp);
-  chThdSleepMilliseconds(1500);
+  //usbDisconnectBus(serusbcfg.usbp);
+  //chThdSleepMilliseconds(1500);
   usbStart(serusbcfg.usbp, &usbcfg);
-  usbConnectBus(serusbcfg.usbp);
+  //usbConnectBus(serusbcfg.usbp);
 
   /*
    * Shell manager initialization.
