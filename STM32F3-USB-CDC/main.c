@@ -54,15 +54,15 @@ static SerialUSBDriver SDU1;
  */
 static const uint8_t vcom_device_descriptor_data[18] = {
   USB_DESC_DEVICE       (0x0110,        /* bcdUSB (1.1).                    */
-                         0x02,          /* bDeviceClass (CDC).              */
+                         0xEF,          /* bDeviceClass (Misc).             */
                          0x02,          /* bDeviceSubClass.                 */
-                         0x00,          /* bDeviceProtocol.                 */
+                         0x01,          /* bDeviceProtocol. (IAD)           */
                          0x40,          /* bMaxPacketSize.                  */
                          0x0483,        /* idVendor (ST).                   */
-                         0x5740,        /* idProduct.                       */
+                         0xABCD,        /* idProduct.                       */
                          0x0200,        /* bcdDevice.                       */
                          1,             /* iManufacturer.                   */
-                         2,             /* iProduct.                        */
+                         5,             /* iProduct.                        */
                          3,             /* iSerialNumber.                   */
                          1)             /* bNumConfigurations.              */
 };
@@ -76,14 +76,21 @@ static const USBDescriptor vcom_device_descriptor = {
 };
 
 /* Configuration Descriptor tree for a CDC.*/
-static const uint8_t vcom_configuration_descriptor_data[90] = {
+static const uint8_t vcom_configuration_descriptor_data[106] = {
   /* Configuration Descriptor.*/
-  USB_DESC_CONFIGURATION(90,            /* wTotalLength.                    */
+  USB_DESC_CONFIGURATION(106,            /* wTotalLength.                    */
                          0x03,          /* bNumInterfaces.                  */
                          0x01,          /* bConfigurationValue.             */
-                         2,             /* iConfiguration.                  */
+                         5,             /* iConfiguration.                  */
                          0xC0,          /* bmAttributes (self powered).     */
                          50),           /* bMaxPower (100mA).               */
+  /* Interface Association Descriptor.*/
+  USB_DESC_INTERFACE_ASSOCIATION(0x00, /* bFirstInterface.                  */
+                                 0x02, /* bInterfaceCount.                  */
+                                 0x02, /* bFunctionClass (CDC).             */
+                                 0x00, /* bFunctionSubClass.                */
+                                 0x00, /* bFunctionProcotol                 */
+                                 2),   /* iInterface.                       */
   /* Interface Descriptor.*/
   USB_DESC_INTERFACE    (0x00,          /* bInterfaceNumber.                */
                          0x00,          /* bAlternateSetting.               */
@@ -95,7 +102,7 @@ static const uint8_t vcom_configuration_descriptor_data[90] = {
                                          Control Model, CDC section 4.3).   */
                          0x01,          /* bInterfaceProtocol (AT commands,
                                            CDC section 4.4).                */
-                         2),            /* iInterface.                      */
+                         0x02),            /* iInterface.                      */
   /* Header Functional Descriptor (CDC section 5.2.3).*/
   USB_DESC_BYTE         (5),            /* bLength.                         */
   USB_DESC_BYTE         (0x24),         /* bDescriptorType (CS_INTERFACE).  */
@@ -139,8 +146,8 @@ static const uint8_t vcom_configuration_descriptor_data[90] = {
                                            4.6).                            */
                          0x00,          /* bInterfaceProtocol (CDC section
                                            4.7).                            */
-                         0x02),         /* iInterface.                      */
-  /* Endpoint 3 Descriptor.*/
+                         2),            /* iInterface.                      */
+  /* Endpoint 1 Descriptor.*/
   USB_DESC_ENDPOINT     (USBD1_DATA_AVAILABLE_EP,       /* bEndpointAddress.*/
                          0x02,          /* bmAttributes (Bulk).             */
                          0x0040,        /* wMaxPacketSize.                  */
@@ -150,23 +157,27 @@ static const uint8_t vcom_configuration_descriptor_data[90] = {
                          0x02,          /* bmAttributes (Bulk).             */
                          0x0040,        /* wMaxPacketSize.                  */
                          0x00),          /* bInterval.                       */
+  /* Interface Association Descriptor.*/
+  USB_DESC_INTERFACE_ASSOCIATION(0x02, /* bFirstInterface.                  */
+                              0x01, /* bInterfaceCount.                  */
+                              0xFF, /* bFunctionClass (Vendor Specific).  */
+                              0x00, /* bFunctionSubClass.                */
+                              0x00, /* bFunctionProcotol                 */
+                              4),   /* iInterface.                       */
   /* Interface Descriptor.*/
   USB_DESC_INTERFACE    (0x02,          /* bInterfaceNumber.                */
                          0x00,          /* bAlternateSetting.               */
                          0x02,          /* bNumEndpoints.                   */
-                         0xFF,          /* bInterfaceClass (Data Class
-                                           Interface, CDC section 4.5).     */
-                         0x00,          /* bInterfaceSubClass (CDC section
-                                           4.6).                            */
-                         0x00,          /* bInterfaceProtocol (CDC section
-                                           4.7).                            */
-                         0x00),         /* iInterface.                      */
+                         0xFF,          /* bInterfaceClass (Vendor Specific). */
+                         0x00,
+                         0x00,
+                         4),         /* iInterface.                      */
   /* Endpoint 3 Descriptor.*/
   USB_DESC_ENDPOINT     (USBD2_DATA_AVAILABLE_EP,       /* bEndpointAddress.*/
                          0x02,          /* bmAttributes (Bulk).             */
                          0x0040,        /* wMaxPacketSize.                  */
                          0x00),         /* bInterval.                       */
-  /* Endpoint 1 Descriptor.*/
+  /* Endpoint 3 Descriptor.*/
   USB_DESC_ENDPOINT     (USBD2_DATA_REQUEST_EP|0x80,    /* bEndpointAddress.*/
                          0x02,          /* bmAttributes (Bulk).             */
                          0x0040,        /* wMaxPacketSize.                  */
@@ -225,13 +236,38 @@ static const uint8_t vcom_string3[] = {
 };
 
 /*
+ * Device Description string.
+ */
+static const uint8_t vcom_string4[] = {
+  USB_DESC_BYTE(52),                    /* bLength.                         */
+  USB_DESC_BYTE(USB_DESCRIPTOR_STRING), /* bDescriptorType.                 */
+  'C', 0, 'h', 0, 'i', 0, 'b', 0, 'i', 0, 'O', 0, 'S', 0, '/', 0,
+  'R', 0, 'T', 0, ' ', 0, 'B', 0, 'u', 0, 'l', 0, 'k', 0, ' ', 0,
+  'I', 0, 'n', 0, 't', 0, 'e', 0, 'r', 0, 'f', 0, 'a', 0, 'c', 0,
+  'e', 0
+};
+
+/*
+ * Device Description string.
+ */
+static const uint8_t vcom_string5[] = {
+  USB_DESC_BYTE(36),                    /* bLength.                         */
+  USB_DESC_BYTE(USB_DESCRIPTOR_STRING), /* bDescriptorType.                 */
+  'C', 0, 'h', 0, 'i', 0, 'b', 0, 'i', 0, 'O', 0, 'S', 0, '/', 0,
+  'R', 0, 'T', 0, ' ', 0, 'D', 0, 'e', 0, 'v', 0, 'i', 0, 'c', 0,
+  'e', 0
+};
+
+/*
  * Strings wrappers array.
  */
 static const USBDescriptor vcom_strings[] = {
   {sizeof vcom_string0, vcom_string0},
   {sizeof vcom_string1, vcom_string1},
   {sizeof vcom_string2, vcom_string2},
-  {sizeof vcom_string3, vcom_string3}
+  {sizeof vcom_string3, vcom_string3},
+  {sizeof vcom_string4, vcom_string4},
+  {sizeof vcom_string5, vcom_string5}
 };
 
 /*
@@ -251,7 +287,7 @@ static const USBDescriptor *get_descriptor(USBDriver *usbp,
   case USB_DESCRIPTOR_CONFIGURATION:
     return &vcom_configuration_descriptor;
   case USB_DESCRIPTOR_STRING:
-    if (dindex < 4)
+    if (dindex < 6)
       return &vcom_strings[dindex];
   }
   return NULL;
