@@ -33,7 +33,7 @@
  */
 #define USBD1_DATA_REQUEST_EP           1
 #define USBD1_DATA_AVAILABLE_EP         1
-#define USBD1_INTERRUPT_REQUEST_EP    2
+#define USBD1_INTERRUPT_REQUEST_EP      2
 #define USBD2_DATA_REQUEST_EP           3
 #define USBD2_DATA_AVAILABLE_EP         3
 
@@ -379,6 +379,55 @@ void bulkDataReceived(USBDriver *usbp, usbep_t ep)
 }
 
 /**
+ * @brief   Notification of data removed from the input queue.
+ */
+static void bulkinotify(GenericQueue *qp) {
+  size_t n, maxsize;
+  USBDriver *usbp = chQGetLink(qp);
+  palTogglePad(GPIOE, GPIOE_LED8_ORANGE);
+
+  /* If there is in the queue enough space to hold at least one packet and
+     a transaction is not yet started then a new transaction is started for
+     the available space.*/
+  maxsize = usbp->epc[USBD2_DATA_REQUEST_EP]->out_maxsize;
+  if (!usbGetReceiveStatusI(usbp, USBD2_DATA_REQUEST_EP) &&
+      ((n = chIQGetEmptyI(&bulkUSBData.iqueue)) >= maxsize)) {
+    chSysUnlock();
+
+    n = (n / maxsize) * maxsize;
+    usbPrepareQueuedReceive(usbp,
+                            USBD2_DATA_REQUEST_EP,
+                            &bulkUSBData.iqueue, n);
+
+    chSysLock();
+    usbStartReceiveI(usbp, USBD2_DATA_REQUEST_EP);
+  }
+}
+
+/**
+ * @brief   Notification of data inserted into the output queue.
+ */
+static void bulkonotify(GenericQueue *qp) {
+  size_t n;
+  USBDriver *usbp = chQGetLink(qp);
+  palTogglePad(GPIOE, GPIOE_LED4_BLUE);
+
+  /* If there is not an ongoing transaction and the output queue contains
+     data then a new transaction is started.*/
+  if (!usbGetTransmitStatusI(usbp, USBD2_DATA_REQUEST_EP) &&
+      ((n = chOQGetFullI(&bulkUSBData.oqueue)) > 0)) {
+    chSysUnlock();
+
+    usbPrepareQueuedTransmit(usbp,
+                             USBD2_DATA_REQUEST_EP,
+                             &bulkUSBData.oqueue, n);
+
+    chSysLock();
+    usbStartTransmitI(usbp, USBD2_DATA_REQUEST_EP);
+  }
+}
+
+/**
  * @brief   IN EP1 state.
  */
 static USBInEndpointState ep1instate;
@@ -475,8 +524,8 @@ static void usb_event(USBDriver *usbp, usbevent_t event) {
 
     /* Bulk IF config */
     usbInitEndpointI(usbp, USBD2_DATA_REQUEST_EP, &ep3config);
-    chIQInit(&bulkUSBData.iqueue, bulkUSBData.ib, sizeof(bulkUSBData.ib), NULL, &bulkUSBData);
-    chOQInit(&bulkUSBData.oqueue, bulkUSBData.ob, sizeof(bulkUSBData.ob), NULL, &bulkUSBData);
+    chIQInit(&bulkUSBData.iqueue, bulkUSBData.ib, sizeof(bulkUSBData.ib), bulkinotify, &USBD1);
+    chOQInit(&bulkUSBData.oqueue, bulkUSBData.ob, sizeof(bulkUSBData.ob), bulkonotify, &USBD1);
 
     /* Starts the first OUT transaction immediately.*/
     usbPrepareQueuedReceive(usbp, USBD2_DATA_REQUEST_EP, &bulkUSBData.iqueue,
@@ -686,6 +735,29 @@ static msg_t Thread1(void *arg) {
 }
 
 /*
+ * USB Bulk thread, times are in milliseconds.
+ */
+static WORKING_AREA(waThread2, 128);
+static msg_t Thread2(void *arg) {
+
+  size_t n;
+  uint8_t bp;
+  (void)arg;
+  chRegSetThreadName("USB Bulk");
+
+  while(serusbcfg.usbp->state != USB_ACTIVE) chThdSleepMilliseconds(100);
+
+  while (TRUE) {
+
+    if (chIQReadTimeout(&bulkUSBData.iqueue, &bp, 1, MS2ST(100)) > 0) {
+
+      chOQPutTimeout(&bulkUSBData.oqueue, bp*2,  MS2ST(100));
+    }
+    chThdSleepMilliseconds(100);
+  }
+}
+
+/*
  * Application entry point.
  */
 int main(void) {
@@ -723,9 +795,10 @@ int main(void) {
   shellInit();
 
   /*
-   * Creates the blinker thread.
+   * Creates the blinker and bulk threads.
    */
   chThdCreateStatic(waThread1, sizeof(waThread1), NORMALPRIO, Thread1, NULL);
+  chThdCreateStatic(waThread2, sizeof(waThread2), NORMALPRIO, Thread2, NULL);
 
   /*
    * Normal main() thread activity, in this demo it does nothing except
