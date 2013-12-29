@@ -37,6 +37,8 @@
 #define USBD2_DATA_REQUEST_EP           3
 #define USBD2_DATA_AVAILABLE_EP         3
 
+#define EVT_BULK_RECV ((eventmask_t) 1)
+
 
 static struct {
   /* Input queue.*/
@@ -48,6 +50,8 @@ static struct {
   /* Output buffer.*/
   uint8_t                   ob[128];
 } bulkUSBData;
+
+static Thread *bulkTp = NULL;
 
 /*
  * DP resistor control is not possible on the STM32F3-Discovery, using stubs
@@ -374,6 +378,8 @@ void bulkDataReceived(USBDriver *usbp, usbep_t ep)
     chSysLockFromIsr();
     usbStartReceiveI(usbp, ep);
   }
+
+  chEvtSignalI(bulkTp, EVT_BULK_RECV);
 
   chSysUnlockFromIsr();
 }
@@ -740,20 +746,22 @@ static msg_t Thread1(void *arg) {
 static WORKING_AREA(waThread2, 128);
 static msg_t Thread2(void *arg) {
 
-  size_t n;
   uint8_t bp;
   (void)arg;
   chRegSetThreadName("USB Bulk");
+
+  bulkTp = chThdSelf();
 
   while(serusbcfg.usbp->state != USB_ACTIVE) chThdSleepMilliseconds(100);
 
   while (TRUE) {
 
+    chEvtWaitAny(EVT_BULK_RECV);
+
     if (chIQReadTimeout(&bulkUSBData.iqueue, &bp, 1, MS2ST(100)) > 0) {
 
       chOQPutTimeout(&bulkUSBData.oqueue, bp*2,  MS2ST(100));
     }
-    chThdSleepMilliseconds(100);
   }
 }
 
