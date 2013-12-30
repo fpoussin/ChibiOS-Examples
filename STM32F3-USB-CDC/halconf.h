@@ -136,6 +136,13 @@
 #endif
 
 /**
+ * @brief   Enables the  Bulk USB subsystem.
+ */
+#if !defined(HAL_USE_BULK_USB) || defined(__DOXYGEN__)
+#define HAL_USE_BULK_USB          TRUE
+#endif
+
+/**
  * @brief   Enables the SPI subsystem.
  */
 #if !defined(HAL_USE_SPI) || defined(__DOXYGEN__)

@@ -24,6 +24,8 @@
 #include "shell.h"
 #include "chprintf.h"
 
+#include "bulk_usb.h"
+
 /*===========================================================================*/
 /* USB related stuff.                                                        */
 /*===========================================================================*/
@@ -37,22 +39,6 @@
 #define USBD2_DATA_REQUEST_EP           3
 #define USBD2_DATA_AVAILABLE_EP         3
 
-#define EVT_BULK_RECV ((eventmask_t) 1)
-
-
-static struct {
-  /* Input queue.*/
-  InputQueue                iqueue;
-  /* Output queue.*/
-  OutputQueue               oqueue;
-  /* Input buffer.*/
-  uint8_t                   ib[128];
-  /* Output buffer.*/
-  uint8_t                   ob[128];
-} bulkUSBData;
-
-static Thread *bulkTp = NULL;
-
 /*
  * DP resistor control is not possible on the STM32F3-Discovery, using stubs
  * for the connection macros.
@@ -64,6 +50,7 @@ static Thread *bulkTp = NULL;
  * Serial over USB Driver structure.
  */
 static SerialUSBDriver SDU1;
+static BulkUSBDriver BDU1;
 
 /*
  * USB Device Descriptor.
@@ -310,130 +297,6 @@ static const USBDescriptor *get_descriptor(USBDriver *usbp,
 }
 
 /**
- * @brief   Default data transmitted callback.
- * @details The application must use this function as callback for the IN
- *          data endpoint.
- *
- * @param[in] usbp      pointer to the @p USBDriver object
- * @param[in] ep        endpoint number
- */
-void bulkDataTransmitted(USBDriver *usbp, usbep_t ep)
-{
-  size_t n;
-  chSysLockFromIsr();
-
-  if ((n = chOQGetFullI(&bulkUSBData.oqueue)) > 0) {
-    /* The endpoint cannot be busy, we are in the context of the callback,
-       so it is safe to transmit without a check.*/
-    chSysUnlockFromIsr();
-
-    usbPrepareQueuedTransmit(usbp, ep, &bulkUSBData.oqueue, n);
-
-    chSysLockFromIsr();
-    usbStartTransmitI(usbp, ep);
-  }
-  else if ((usbp->epc[ep]->in_state->txsize > 0) &&
-           !(usbp->epc[ep]->in_state->txsize &
-             (usbp->epc[ep]->in_maxsize - 1))) {
-    /* Transmit zero sized packet in case the last one has maximum allowed
-       size. Otherwise the recipient may expect more data coming soon and
-       not return buffered data to app. See section 5.8.3 Bulk Transfer
-       Packet Size Constraints of the USB Specification document.*/
-    chSysUnlockFromIsr();
-
-    usbPrepareQueuedTransmit(usbp, ep, &bulkUSBData.oqueue, 0);
-
-    chSysLockFromIsr();
-    usbStartTransmitI(usbp, ep);
-  }
-
-  chSysUnlockFromIsr();
-}
-
-/**
- * @brief   Default data received callback.
- * @details The application must use this function as callback for the OUT
- *          data endpoint.
- *
- * @param[in] usbp      pointer to the @p USBDriver object
- * @param[in] ep        endpoint number
- */
-void bulkDataReceived(USBDriver *usbp, usbep_t ep)
-{
-  size_t n, maxsize;
-
-  chSysLockFromIsr();
-
-  /* Writes to the input queue can only happen when there is enough space
-     to hold at least one packet.*/
-  maxsize = usbp->epc[ep]->out_maxsize;
-  if ((n = chIQGetEmptyI(&bulkUSBData.iqueue)) >= maxsize) {
-    /* The endpoint cannot be busy, we are in the context of the callback,
-       so a packet is in the buffer for sure.*/
-    chSysUnlockFromIsr();
-
-    n = (n / maxsize) * maxsize;
-    usbPrepareQueuedReceive(usbp, ep, &bulkUSBData.iqueue, n);
-
-    chSysLockFromIsr();
-    usbStartReceiveI(usbp, ep);
-  }
-
-  chEvtSignalI(bulkTp, EVT_BULK_RECV);
-
-  chSysUnlockFromIsr();
-}
-
-/**
- * @brief   Notification of data removed from the input queue.
- */
-static void bulkinotify(GenericQueue *qp) {
-  size_t n, maxsize;
-  USBDriver *usbp = chQGetLink(qp);
-  palTogglePad(GPIOE, GPIOE_LED8_ORANGE);
-
-  /* If there is in the queue enough space to hold at least one packet and
-     a transaction is not yet started then a new transaction is started for
-     the available space.*/
-  maxsize = usbp->epc[USBD2_DATA_REQUEST_EP]->out_maxsize;
-  if (!usbGetReceiveStatusI(usbp, USBD2_DATA_REQUEST_EP) &&
-      ((n = chIQGetEmptyI(&bulkUSBData.iqueue)) >= maxsize)) {
-    chSysUnlock();
-
-    n = (n / maxsize) * maxsize;
-    usbPrepareQueuedReceive(usbp,
-                            USBD2_DATA_REQUEST_EP,
-                            &bulkUSBData.iqueue, n);
-
-    chSysLock();
-    usbStartReceiveI(usbp, USBD2_DATA_REQUEST_EP);
-  }
-}
-
-/**
- * @brief   Notification of data inserted into the output queue.
- */
-static void bulkonotify(GenericQueue *qp) {
-  size_t n;
-  USBDriver *usbp = chQGetLink(qp);
-  palTogglePad(GPIOE, GPIOE_LED4_BLUE);
-
-  /* If there is not an ongoing transaction and the output queue contains
-     data then a new transaction is started.*/
-  if (!usbGetTransmitStatusI(usbp, USBD2_DATA_REQUEST_EP) &&
-      ((n = chOQGetFullI(&bulkUSBData.oqueue)) > 0)) {
-    chSysUnlock();
-
-    usbPrepareQueuedTransmit(usbp,
-                             USBD2_DATA_REQUEST_EP,
-                             &bulkUSBData.oqueue, n);
-
-    chSysLock();
-    usbStartTransmitI(usbp, USBD2_DATA_REQUEST_EP);
-  }
-}
-
-/**
  * @brief   IN EP1 state.
  */
 static USBInEndpointState ep1instate;
@@ -442,16 +305,6 @@ static USBInEndpointState ep1instate;
  * @brief   OUT EP1 state.
  */
 static USBOutEndpointState ep1outstate;
-
-/**
- * @brief   IN EP3 state.
- */
-static USBInEndpointState ep3instate;
-
-/**
- * @brief   OUT EP3 state.
- */
-static USBOutEndpointState ep3outstate;
 
 /**
  * @brief   EP1 initialization structure (both IN and OUT).
@@ -465,22 +318,6 @@ static const USBEndpointConfig ep1config = {
   0x0040,
   &ep1instate,
   &ep1outstate,
-  1,
-  NULL
-};
-
-/**
- * @brief   EP3 initialization structure (both IN and OUT).
- */
-static const USBEndpointConfig ep3config = {
-  USB_EP_MODE_TYPE_BULK,
-  NULL,
-  bulkDataTransmitted,
-  bulkDataReceived,
-  0x0040,
-  0x0040,
-  &ep3instate,
-  &ep3outstate,
   1,
   NULL
 };
@@ -502,6 +339,32 @@ static const USBEndpointConfig ep2config = {
   0x0000,
   &ep2instate,
   NULL,
+  1,
+  NULL
+};
+
+/**
+ * @brief   IN EP3 state.
+ */
+static USBInEndpointState ep3instate;
+
+/**
+ * @brief   OUT EP3 state.
+ */
+static USBOutEndpointState ep3outstate;
+
+/**
+ * @brief   EP3 initialization structure (both IN and OUT).
+ */
+static const USBEndpointConfig ep3config = {
+  USB_EP_MODE_TYPE_BULK,
+  NULL,
+  bduDataTransmitted,
+  bduDataReceived,
+  0x0040,
+  0x0040,
+  &ep3instate,
+  &ep3outstate,
   1,
   NULL
 };
@@ -530,13 +393,9 @@ static void usb_event(USBDriver *usbp, usbevent_t event) {
 
     /* Bulk IF config */
     usbInitEndpointI(usbp, USBD2_DATA_REQUEST_EP, &ep3config);
-    chIQInit(&bulkUSBData.iqueue, bulkUSBData.ib, sizeof(bulkUSBData.ib), bulkinotify, &USBD1);
-    chOQInit(&bulkUSBData.oqueue, bulkUSBData.ob, sizeof(bulkUSBData.ob), bulkonotify, &USBD1);
 
-    /* Starts the first OUT transaction immediately.*/
-    usbPrepareQueuedReceive(usbp, USBD2_DATA_REQUEST_EP, &bulkUSBData.iqueue,
-                            usbp->epc[USBD2_DATA_REQUEST_EP]->out_maxsize);
-    usbStartReceiveI(usbp, USBD2_DATA_REQUEST_EP);
+    /* Resetting the state of the Bulk driver subsystem.*/
+    bduConfigureHookI(&BDU1);
 
     chSysUnlockFromIsr();
     return;
@@ -615,6 +474,15 @@ static const SerialUSBConfig serusbcfg = {
   USBD1_DATA_REQUEST_EP,
   USBD1_DATA_AVAILABLE_EP,
   USBD1_INTERRUPT_REQUEST_EP
+};
+
+/*
+ * Bulk USB driver configuration.
+ */
+static const BulkUSBConfig bulkusbcfg = {
+  &USBD1,
+  USBD2_DATA_REQUEST_EP,
+  USBD2_DATA_AVAILABLE_EP
 };
 
 /*===========================================================================*/
@@ -750,18 +618,18 @@ static msg_t Thread2(void *arg) {
   (void)arg;
   chRegSetThreadName("USB Bulk");
 
-  bulkTp = chThdSelf();
-
-  while(serusbcfg.usbp->state != USB_ACTIVE) chThdSleepMilliseconds(100);
+  while(BDU1.state != BDU_READY) chThdSleepMilliseconds(100);
 
   while (TRUE) {
 
-    chEvtWaitAny(EVT_BULK_RECV);
-
-    if (chIQReadTimeout(&bulkUSBData.iqueue, &bp, 1, MS2ST(100)) > 0) {
-
-      chOQPutTimeout(&bulkUSBData.oqueue, bp*2,  MS2ST(100));
+    bp = 0;
+    while (!chnReadTimeout((BaseChannel *)&BDU1, &bp, 1, MS2ST(10))) {
+      chThdSleepMilliseconds(100);
     }
+
+    bp *=2;
+    chnWriteTimeout((BaseChannel *)&BDU1, &bp, 1, MS2ST(10));
+    chThdSleepMilliseconds(100);
   }
 }
 
@@ -786,6 +654,12 @@ int main(void) {
    */
   sduObjectInit(&SDU1);
   sduStart(&SDU1, &serusbcfg);
+
+  /*
+   * Initializes a Bulk USB driver.
+   */
+  bduObjectInit(&BDU1);
+  bduStart(&BDU1, &bulkusbcfg);
 
   /*
    * Activates the USB driver and then the USB bus pull-up on D+.
