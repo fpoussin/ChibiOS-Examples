@@ -20,7 +20,7 @@
 
 /**
  * @file    bulk_usb.h
- * @brief   Serial over USB Driver macros and structures.
+ * @brief   Bulk USB Driver macros and structures.
  *
  * @addtogroup BULK_USB
  * @{
@@ -45,7 +45,7 @@
  * @{
  */
 /**
- * @brief   Serial over USB buffers size.
+ * @brief   Bulk USB buffers size.
  * @details Configuration parameter, the buffer size must be a multiple of
  *          the USB data endpoint maximum packet size.
  * @note    The default is 256 bytes for both the transmission and receive
@@ -79,12 +79,12 @@ typedef enum {
 } bdustate_t;
 
 /**
- * @brief   Structure representing a serial over USB driver.
+ * @brief   Structure representing a bulk USB driver.
  */
 typedef struct BulkUSBDriver BulkUSBDriver;
 
 /**
- * @brief   Serial over USB Driver configuration structure.
+ * @brief   Bulk USB Driver configuration structure.
  * @details An instance of this structure must be passed to @p bduStart()
  *          in order to configure and start the driver operations.
  */
@@ -104,7 +104,7 @@ typedef struct {
 } BulkUSBConfig;
 
 /**
- * @brief   @p SerialDriver specific data.
+ * @brief   @p BulkUSBDriver specific data.
  */
 #define _bulk_usb_driver_data                                             \
   _base_asynchronous_channel_data                                           \
@@ -131,7 +131,7 @@ typedef struct {
 /**
  * @extends BaseAsynchronousChannelVMT
  *
- * @brief   @p SerialDriver virtual methods table.
+ * @brief   @p BulkUSBDriver virtual methods table.
  */
 struct BulkUSBDriverVMT {
   _bulk_usb_driver_methods

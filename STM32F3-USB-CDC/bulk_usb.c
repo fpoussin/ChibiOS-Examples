@@ -20,7 +20,7 @@
 
 /**
  * @file    bulk_usb.c
- * @brief   Serial over USB Driver code.
+ * @brief   Bulk USB Driver code.
  *
  * @addtogroup BULK_USB
  * @{
@@ -163,7 +163,7 @@ static void onotify(GenericQueue *qp) {
 /*===========================================================================*/
 
 /**
- * @brief   Serial Driver initialization.
+ * @brief   Bulk USB Driver initialization.
  * @note    This function is implicitly invoked by @p halInit(), there is
  *          no need to explicitly initialize the driver.
  *
@@ -194,7 +194,7 @@ void bduObjectInit(BulkUSBDriver *bdup) {
  * @brief   Configures and starts the driver.
  *
  * @param[in] bdup      pointer to a @p BulkUSBDriver object
- * @param[in] config    the serial over USB driver configuration
+ * @param[in] config    the Bulk USB driver configuration
  *
  * @api
  */
@@ -270,7 +270,7 @@ void bduConfigureHookI(BulkUSBDriver *bdup) {
 
 /**
  * @brief   Default requests hook.
- * @details Applications wanting to use the Serial over USB driver can use
+ * @details Applications wanting to use the Bulk USB driver can use
  *          this function as requests hook in the USB configuration.
  *          The following requests are emulated:
  *          - CDC_GET_LINE_CODING.
@@ -370,6 +370,6 @@ void bduDataReceived(USBDriver *usbp, usbep_t ep) {
   chSysUnlockFromIsr();
 }
 
-#endif /* HAL_USE_SERIAL */
+#endif /* HAL_USE_BULK_USB */
 
 /** @} */

@@ -624,12 +624,11 @@ static msg_t Thread2(void *arg) {
 
     bp = 0;
     while (!chnReadTimeout((BaseChannel *)&BDU1, &bp, 1, MS2ST(10))) {
-      chThdSleepMilliseconds(100);
+      chThdSleepMilliseconds(10);
     }
 
     bp *=2;
     chnWriteTimeout((BaseChannel *)&BDU1, &bp, 1, MS2ST(10));
-    chThdSleepMilliseconds(100);
   }
 }
 
