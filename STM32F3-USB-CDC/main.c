@@ -25,6 +25,7 @@
 #include "chprintf.h"
 
 #include "usb_config.h"
+#include "ansi.h"
 
 
 /*===========================================================================*/
@@ -121,6 +122,12 @@ static const ShellCommand commands[] = {
   {"threads", cmd_threads},
   {"test", cmd_test},
   {"write", cmd_write},
+  {"ansiTest",cmd_ansiColorTest},
+  {"echo",cmd_echo},
+  {"getKey",cmd_getKey},
+  {"extended",cmd_ExtendedAscii},
+  {"box",cmd_box},
+  {"draw",cmd_draw},
   {NULL, NULL}
 };
 
