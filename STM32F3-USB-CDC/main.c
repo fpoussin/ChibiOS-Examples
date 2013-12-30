@@ -164,13 +164,16 @@ static msg_t Thread2(void *arg) {
 
   while (TRUE) {
 
-    bp = 0;
     while (!chnReadTimeout((BaseChannel *)&BDU1, &bp, 1, MS2ST(10))) {
       chThdSleepMilliseconds(10);
     }
 
+    if (bp == 0xAB) palSetPad(GPIOE, GPIOE_LED9_BLUE);
+    else palClearPad(GPIOE, GPIOE_LED9_BLUE);
+
     bp *=2;
     chnWriteTimeout((BaseChannel *)&BDU1, &bp, 1, MS2ST(10));
+    palTogglePad(GPIOE, GPIOE_LED10_RED);
   }
 }
 
