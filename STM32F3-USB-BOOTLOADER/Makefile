@@ -5,7 +5,7 @@
 
 # Compiler options here.
 ifeq ($(USE_OPT),)
-  USE_OPT = -O2 -ggdb -fomit-frame-pointer -falign-functions=16
+  USE_OPT = -Os -ggdb -fomit-frame-pointer -falign-functions=16
 endif
 
 # C specific options here (added to USE_OPT).
@@ -61,7 +61,7 @@ endif
 #
 
 # Define project name here
-PROJECT = ch
+PROJECT = bootloader
 
 # Imported source files and paths
 CHIBIOS = ../../chibios
@@ -70,22 +70,20 @@ include $(CHIBIOS)/os/hal/platforms/STM32F30x/platform.mk
 include $(CHIBIOS)/os/hal/hal.mk
 include $(CHIBIOS)/os/ports/GCC/ARMCMx/STM32F3xx/port.mk
 include $(CHIBIOS)/os/kernel/kernel.mk
-include $(CHIBIOS)/test/test.mk
 
 # Define linker script file here
-LDSCRIPT= STM32F303xC_bootloader.ld
+LDSCRIPT= STM32F303xC_SMALL.ld
 
 # C sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
 CSRC = $(PORTSRC) \
        $(KERNSRC) \
-       $(TESTSRC) \
        $(HALSRC) \
        $(PLATFORMSRC) \
        $(BOARDSRC) \
-       $(CHIBIOS)/os/various/shell.c \
        $(CHIBIOS)/os/various/chprintf.c \
-       main.c bulk_usb.c usb_config.c ansi.c
+       main.c bulk_usb.c usb_config.c \
+       stm32f30x_flash.c comm.c stm32f30x_iwdg.c common.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.

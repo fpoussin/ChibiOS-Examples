@@ -164,19 +164,35 @@ static WORKING_AREA(waThread2, 128);
 static msg_t Thread2(void *arg) {
 
   uint8_t bp;
+  EventListener el1;
+  flagsmask_t flags;
   (void)arg;
   chRegSetThreadName("USB Bulk");
+  chEvtRegisterMask(chnGetEventSource(&BDU1), &el1, CHN_INPUT_AVAILABLE);
 
   while(BDU1.state != BDU_READY) chThdSleepMilliseconds(100);
 
   while (TRUE) {
 
-    while (!chnReadTimeout((BaseChannel *)&BDU1, &bp, 1, MS2ST(10))) {
-      chThdSleepMilliseconds(10);
+    chEvtWaitOneTimeout(EVENT_MASK(1), MS2ST(10));
+    flags = chEvtGetAndClearFlags(&el1);
+
+    if (flags & CHN_INPUT_AVAILABLE) {
+
+      chnReadTimeout((BaseChannel *)&BDU1, &bp, 1, MS2ST(10));
     }
 
-    if (bp == 0xAB) palSetPad(GPIOE, GPIOE_LED9_BLUE);
-    else palClearPad(GPIOE, GPIOE_LED9_BLUE);
+    if (bp == 0xAB) {
+
+      chSysLockFromIsr();
+
+      usbDisconnectBus(&USBD1);
+      usbStop(&USBD1);
+
+      chSysDisable();
+
+      NVIC_SystemReset();
+    }
 
     bp *=2;
     chnWriteTimeout((BaseChannel *)&BDU1, &bp, 1, MS2ST(10));
